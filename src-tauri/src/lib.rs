@@ -44,6 +44,7 @@ pub fn run() {
             commands::launcher_update,
             commands::account_login,
             commands::account_logout,
+            commands::account_details,
             commands::spots,
             commands::spot_screenshot,
             commands::send_report,

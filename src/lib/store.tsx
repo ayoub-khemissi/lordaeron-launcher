@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { api, closeWindow, onGame, onProgress } from "./api";
-import type { News, Prefs, Progress, SettingsFile, Status } from "./types";
+import type { AccountDetails, News, Prefs, Progress, SettingsFile, Status } from "./types";
 
 interface Launcher {
   status: Status | null;
@@ -19,6 +19,8 @@ interface Launcher {
   resume: () => Promise<boolean>;
   install: () => Promise<boolean>;
   setStatus: (s: Status) => void;
+  account: AccountDetails | null;
+  loadAccount: (locale: string) => Promise<void>;
   loadSettings: () => Promise<void>;
   writeSettings: (values: Record<string, string>) => void;
 }
@@ -35,6 +37,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SettingsFile | null>(null);
   const [news, setNews] = useState<News | null>(null);
   const [paused, setPaused] = useState(false);
+  const [account, setAccount] = useState<AccountDetails | null>(null);
   const pausedLaunch = useRef(false);
   const busyRef = useRef(false);
   const pendingWrites = useRef<Record<string, string>>({});
@@ -60,6 +63,15 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
       setSettings(await api.readSettings());
     } catch {
       setSettings(null);
+    }
+  }, []);
+
+  // the signed-in account's shards and characters (none while signed out)
+  const loadAccount = useCallback(async (locale: string) => {
+    try {
+      setAccount(await api.accountDetails(locale));
+    } catch {
+      /* kept as it was: shown again at the next refresh */
     }
   }, []);
 
@@ -183,7 +195,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
   return (
     <Context.Provider
-      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, paused, pause, resume, install, loadSettings, writeSettings, setStatus }}
+      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, paused, pause, resume, install, loadSettings, writeSettings, setStatus, account, loadAccount }}
     >
       {children}
     </Context.Provider>

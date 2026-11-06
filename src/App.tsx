@@ -12,6 +12,8 @@ import { GraphicsScreen } from "./screens/Graphics";
 import { GuideScreen } from "./screens/Guide";
 import { HomeScreen } from "./screens/Home";
 import { NewsScreen, type NewsTarget } from "./screens/News";
+import { ShopScreen } from "./screens/Shop";
+import { ToolsScreen } from "./screens/Tools";
 import { Onboarding } from "./screens/Onboarding";
 import { SettingsScreen } from "./screens/Settings";
 
@@ -51,6 +53,7 @@ function Shell() {
     <I18nProvider language={language}>
       <div className="flex h-full flex-col bg-wow-darker">
         <ErrorToasts />
+        <AccountSync />
         <TitleBar />
         {!status || onboarding === null ? (
           <div className="flex flex-1 items-center justify-center">
@@ -88,6 +91,8 @@ function Shell() {
                   )}
                   {screen === "news" && <NewsScreen target={newsTarget} />}
                   {screen === "graphics" && <GraphicsScreen />}
+                  {screen === "shop" && <ShopScreen />}
+                  {screen === "tools" && <ToolsScreen />}
                   {screen === "guide" && <GuideScreen />}
                   {screen === "settings" && <SettingsScreen onGameFolder={() => setOnboarding(true)} />}
                 </motion.div>
@@ -99,6 +104,30 @@ function Shell() {
       </div>
     </I18nProvider>
   );
+}
+
+// the signed-in account's shards and characters: at sign-in, when the language changes, every two minutes and when the
+// launcher comes back to the front
+function AccountSync() {
+  const { language } = useI18n();
+  const { status, loadAccount } = useLauncher();
+  const signedIn = status?.prefs.signedInAs ?? null;
+
+  useEffect(() => {
+    loadAccount(language);
+    if (!signedIn) return;
+    const timer = window.setInterval(() => loadAccount(language), 120_000);
+    const onFocus = () => loadAccount(language);
+
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [language, signedIn, loadAccount]);
+
+  return null;
 }
 
 // errors of background saves (settings, preferences), told in the player's language

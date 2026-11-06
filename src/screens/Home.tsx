@@ -1,9 +1,9 @@
-import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip, useDisclosure } from "@heroui/react";
-import { AlertTriangle, CheckCircle2, ChevronUp, Info, Loader2, UserRound, X, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
+import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip } from "@heroui/react";
+import { AlertTriangle, CheckCircle2, ChevronUp, Info, Loader2, X, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-import { SignInModal } from "../components/SignIn";
+import { CharacterCard } from "../components/CharacterCard";
 import type { Screen } from "../components/Sidebar";
 import { formatDate, RealmBadge, type NewsTarget } from "./News";
 import { useI18n } from "../i18n";
@@ -16,7 +16,6 @@ import type { PendingItem, Progress, RealmDef } from "../lib/types";
 export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void; onNews: (t: NewsTarget) => void }) {
   const { t, language } = useI18n();
   const { status, busy, progress, error, play, setPrefs, settings, refresh, news, paused, pause, resume } = useLauncher();
-  const signIn = useDisclosure();
 
   if (!status) return null;
   // the backend sends the realms this player sees (the team's ones too for an account of their level)
@@ -65,6 +64,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
             ))}
           </div>
         )}
+        {realm && <CharacterCard realm={realm} />}
         </div>
         <LatestNews realm={status.prefs.realm} news={news} onNews={onNews} />
         </div>
@@ -97,16 +97,6 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
               {!busy && (
                 <button
                   className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3.5 text-xs text-white/75 transition hover:border-wow-gold/40 hover:text-wow-gold-light"
-                  title={status.prefs.signedInAs ? t("signin.autoHint") : t("signin.pitch")}
-                  onClick={() => (status.prefs.signedInAs ? onScreen("settings") : signIn.onOpen())}
-                >
-                  <UserRound className={status.prefs.signedInAs ? "text-emerald-400" : "text-white/40"} size={14} />
-                  {status.prefs.signedInAs ?? t("signin.submit")}
-                </button>
-              )}
-              {!busy && (
-                <button
-                  className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3.5 text-xs text-white/75 transition hover:border-wow-gold/40 hover:text-wow-gold-light"
                   onClick={() => onScreen("graphics")}
                 >
                   <Sparkles className={status.prefs.lumenveil ? "text-wow-gold" : "text-white/40"} size={14} />
@@ -114,7 +104,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                 </button>
               )}
               <button
-                className="play-button h-14 w-52 shrink-0 rounded-xl font-heading text-xl tracking-[0.18em] transition disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-50"
+                className="play-button h-14 w-52 shrink-0 rounded-xl font-heading text-xl font-bold tracking-[0.18em] transition disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-50"
                 disabled={busy || status.running}
                 onClick={() => (paused ? resume() : play(true))}
               >
@@ -136,7 +126,6 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
           )}
         </div>
       </div>
-      <SignInModal isOpen={signIn.isOpen} onClose={signIn.onClose} />
     </div>
   );
 }

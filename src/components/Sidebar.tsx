@@ -1,14 +1,16 @@
-import { BookOpen, Newspaper, Play, Settings, Sparkles } from "lucide-react";
+import { BookOpen, LayoutGrid, Newspaper, Play, Settings, ShoppingBag, Sparkles } from "lucide-react";
 
 import { useI18n } from "../i18n";
 import { useLauncher } from "../lib/store";
 
-export type Screen = "play" | "news" | "graphics" | "guide" | "settings";
+export type Screen = "play" | "news" | "graphics" | "shop" | "tools" | "guide" | "settings";
 
 const ITEMS = [
   { id: "play", icon: Play, label: "nav.play" },
   { id: "news", icon: Newspaper, label: "nav.news" },
   { id: "graphics", icon: Sparkles, label: "nav.graphics" },
+  { id: "shop", icon: ShoppingBag, label: "nav.shop" },
+  { id: "tools", icon: LayoutGrid, label: "nav.tools" },
   { id: "guide", icon: BookOpen, label: "nav.guide" },
   { id: "settings", icon: Settings, label: "nav.settings" },
 ] as const;
@@ -18,7 +20,7 @@ export function Sidebar({ screen, onScreen }: { screen: Screen; onScreen: (s: Sc
   const { status } = useLauncher();
 
   return (
-    <nav className="flex w-[92px] shrink-0 flex-col items-center gap-1 border-r border-white/5 bg-black/30 py-4">
+    <nav className="thin-scroll flex w-[92px] shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-white/5 bg-black/30 py-3">
       {ITEMS.map(({ id, icon: Icon, label }) => {
         const active = screen === id;
 
@@ -26,7 +28,7 @@ export function Sidebar({ screen, onScreen }: { screen: Screen; onScreen: (s: Sc
           <button
             key={id}
             aria-current={active ? "page" : undefined}
-            className={`group relative flex w-[76px] flex-col items-center gap-1.5 rounded-xl py-3 text-[11px] font-medium transition ${
+            className={`group relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-xl py-2.5 text-[11px] font-medium transition ${
               active ? "bg-wow-gold/12 text-wow-gold-light" : "text-white/55 hover:bg-white/5 hover:text-white/90"
             }`}
             onClick={() => onScreen(id)}

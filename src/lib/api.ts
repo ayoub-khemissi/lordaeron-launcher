@@ -1,4 +1,4 @@
-import type { GameInfo, News, NewsPost, Prefs, Progress, SettingsFile, SpotView, Status } from "./types";
+import type { AccountDetails, GameInfo, News, NewsPost, Prefs, Progress, SettingsFile, SpotView, Status } from "./types";
 
 import { mock } from "./mock";
 
@@ -32,6 +32,7 @@ export const api = {
   accountLogin: (username: string, password: string, code?: string) =>
     call<Status>("account_login", { username, password, code: code || null }),
   accountLogout: () => call<Status>("account_logout"),
+  accountDetails: (locale: string) => call<AccountDetails | null>("account_details", { locale }),
   spots: () => call<SpotView[]>("spots"),
   spotScreenshot: (saved: string) => call<string | null>("spot_screenshot", { saved }),
   sendReport: (number: number, saved: string, message: string, screenshot: boolean) =>

@@ -95,6 +95,23 @@ pub async fn me() -> Result<(String, Option<u8>)> {
     }
 }
 
+/// The signed-in account as the Play tab shows it: soul shards, avatar, each realm's character played last (website
+/// app/api/launcher/me), zone names in `locale`.
+pub async fn details(locale: &str) -> Result<serde_json::Value> {
+    let token = token().ok_or_else(|| coded("signedOut", ""))?;
+    let response = client()?
+        .post(ME)
+        .json(&serde_json::json!({ "token": token, "locale": locale }))
+        .send()
+        .await
+        .map_err(|_| coded("offline", ""))?;
+    if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+        forget();
+        return Err(coded("signedOut", ""));
+    }
+    response.json().await.map_err(|_| coded("other", "lordaeron.eu"))
+}
+
 pub async fn sign_out() {
     if let Some(token) = token() {
         let _ = post(LOGOUT, serde_json::json!({ "token": token })).await;

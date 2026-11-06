@@ -214,3 +214,27 @@ export interface SpotView {
   screenshot: string | null;
   sent: { id: number; sentAt: number } | null;
 }
+
+// the signed-in account (website app/api/launcher/me): soul shards, avatar, each realm's character played last
+export interface LauncherCharacter {
+  name: string;
+  level: number;
+  race: number;
+  cls: number;
+  gender: number;
+  zone: string | null;
+  guild: string | null;
+  online: boolean;
+  lastPlayed: number | null;
+  raceIcon: string | null;
+  classIcon: string | null;
+  armory: string;
+}
+
+export interface AccountDetails {
+  username: string;
+  security: number;
+  shards: number;
+  avatar: string | null;
+  realms: Record<string, { count: number; last: LauncherCharacter | null }>;
+}

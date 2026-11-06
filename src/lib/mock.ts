@@ -163,6 +163,35 @@ export async function mock(command: string, args?: Record<string, unknown>): Pro
       Object.assign(prefs, { signedInAs: String(args?.username).toUpperCase(), accountName: String(args?.username).toUpperCase() });
 
       return status();
+    case "account_details":
+      return prefs.signedInAs
+        ? {
+            username: prefs.signedInAs,
+            security: 0,
+            shards: 1250,
+            avatar: "https://wow.zamimg.com/images/wow/icons/large/inv_helmet_96.jpg",
+            realms: {
+              rimeheart: {
+                count: 4,
+                last: {
+                  name: "Valandril", level: 80, race: 10, cls: 2, gender: 0, zone: "Dalaran", guild: "Les Gardiens d'Azeroth",
+                  online: false, lastPlayed: Math.floor(Date.now() / 1000) - 7200,
+                  raceIcon: "https://lordaeron.eu/img/identity/race_bloodelf_male.jpg", classIcon: "https://lordaeron.eu/img/identity/classicon_paladin.jpg",
+                  armory: "https://lordaeron.eu/fr/rimeheart/armory/Valandril",
+                },
+              },
+              lordaeron: {
+                count: 2,
+                last: {
+                  name: "Thalmor", level: 71, race: 3, cls: 1, gender: 0, zone: "Toundra Boréenne", guild: null,
+                  online: false, lastPlayed: Math.floor(Date.now() / 1000) - 3 * 86400,
+                  raceIcon: "https://lordaeron.eu/img/identity/race_dwarf_male.jpg", classIcon: "https://lordaeron.eu/img/identity/classicon_warrior.jpg",
+                  armory: "https://lordaeron.eu/fr/lordaeron/armory/Thalmor",
+                },
+              },
+            },
+          }
+        : null;
     case "account_logout":
       prefs.signedInAs = null;
 

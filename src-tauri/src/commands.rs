@@ -817,3 +817,23 @@ pub async fn account_logout(app: AppHandle, state: State<'_, AppState>) -> Res<S
     state.log("signed out");
     Ok(compute_status(&app, &state))
 }
+
+/// The signed-in account for the Play tab (shards, avatar, characters); a sign-in the website refused is forgotten.
+#[tauri::command]
+pub async fn account_details(state: State<'_, AppState>, locale: String) -> Res<Option<serde_json::Value>> {
+    if state.prefs().signed_in_as.is_none() {
+        return Ok(None);
+    }
+    let locale = if locale.len() == 2 && locale.chars().all(|c| c.is_ascii_lowercase()) { locale } else { "en".into() };
+    match crate::login::details(&locale).await {
+        Ok(value) => Ok(Some(value)),
+        Err(e) if e.to_string() == "signedOut" => {
+            let mut p = state.prefs();
+            p.signed_in_as = None;
+            p.security = None;
+            state.save_prefs(p).map_err(err)?;
+            Ok(None)
+        }
+        Err(e) => Err(ui(e)),
+    }
+}

@@ -2,6 +2,8 @@ import { Minus, X } from "lucide-react";
 
 import { inApp } from "../lib/api";
 
+import { AccountMenu } from "./AccountMenu";
+
 async function windowAction(action: "minimize" | "close") {
   if (!inApp) return;
   const { getCurrentWindow } = await import("@tauri-apps/api/window");
@@ -18,7 +20,8 @@ export function TitleBar() {
         <img alt="" className="h-5 w-5" src="/logo.webp" />
         <span className="font-heading text-[13px] tracking-[0.2em] text-wow-gold-light">LORDAERON</span>
       </div>
-      <div className="ml-auto flex h-full">
+      <div className="ml-auto flex h-full items-center">
+        <AccountMenu />
         <button
           aria-label="Minimise"
           className="flex h-full w-11 items-center justify-center text-white/60 transition hover:bg-white/10 hover:text-white"
