@@ -15,6 +15,8 @@ const prefs: Prefs = {
   afterPlay: "minimize",
   lumenveil: true,
   pendingPreset: null,
+  downloadLimit: 0,
+  autoUpdate: true,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [
@@ -97,7 +99,15 @@ async function run() {
 
   for (let i = 0; i < steps.length; i++) {
     for (let done = 0; done <= 10; done++) {
-      const p: Progress = { step: steps[i].kind, name: steps[i].name, done: (steps[i].size * done) / 10, total: steps[i].size, index: i, count: steps.length };
+      const p: Progress = {
+        step: steps[i].kind,
+        name: steps[i].name,
+        done: (steps[i].size * done) / 10,
+        total: steps[i].size,
+        speed: 3_400_000,
+        index: i,
+        count: steps.length,
+      };
 
       window.dispatchEvent(new CustomEvent("mock-progress", { detail: p }));
       await wait(120);

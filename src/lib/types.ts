@@ -10,6 +10,8 @@ export interface Prefs {
   afterPlay: "minimize" | "close" | "stay";
   lumenveil: boolean; // the player wants the enhanced graphics
   pendingPreset: string | null; // chosen before Lumenveil was installed: applied by the install
+  downloadLimit: number; // bytes per second, 0 = no limit
+  autoUpdate: boolean; // update as soon as the launcher opens, not only at Play
 }
 
 export interface GameInfo {
@@ -76,8 +78,9 @@ export interface PendingItem {
 export interface Progress {
   step: PendingItem["kind"] | "done" | "launch";
   name: string;
-  done: number; // bytes, or seconds for the setup
+  done: number; // bytes (the setup: thousandths)
   total: number;
+  speed: number; // bytes per second, over the last seconds
   index: number; // which of `count` steps
   count: number;
 }

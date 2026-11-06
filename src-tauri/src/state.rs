@@ -25,6 +25,7 @@ pub struct AppState {
     pub busy: AtomicBool,
     pub running: AtomicBool,
     pub repair_next: AtomicBool,
+    pub paused: AtomicBool,
     pub log_file: PathBuf,
 }
 
@@ -46,6 +47,7 @@ impl AppState {
             busy: AtomicBool::new(false),
             running: AtomicBool::new(false),
             repair_next: AtomicBool::new(false),
+            paused: AtomicBool::new(false),
             log_file: logs.join("launcher.log"),
         })
     }

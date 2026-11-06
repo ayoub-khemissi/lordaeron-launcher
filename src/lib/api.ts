@@ -22,6 +22,8 @@ export const api = {
   readSettings: () => call<SettingsFile>("read_settings"),
   writeSettings: (values: Record<string, string>) => call<SettingsFile>("write_settings", { values }),
   repair: () => call<void>("repair"),
+  // the running download stops where it is; the next play() goes on from there
+  pause: () => call<void>("pause"),
   rollbackLumenveil: () => call<string | null>("rollback_lumenveil"),
   uninstallLumenveil: () => call<void>("uninstall_lumenveil"),
   // turns the enhanced graphics on and installs them right away

@@ -36,6 +36,7 @@ pub fn run() {
             commands::read_settings,
             commands::write_settings,
             commands::repair,
+            commands::pause,
             commands::rollback_lumenveil,
             commands::uninstall_lumenveil,
             commands::install_lumenveil,

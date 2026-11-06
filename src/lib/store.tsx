@@ -15,6 +15,9 @@ interface Launcher {
   refresh: (remote?: boolean) => Promise<Status | null>;
   setPrefs: (prefs: Partial<Prefs>) => Promise<void>;
   play: (launch?: boolean) => Promise<boolean>;
+  paused: boolean;
+  pause: () => Promise<void>;
+  resume: () => Promise<boolean>;
   install: () => Promise<boolean>;
   loadSettings: () => Promise<void>;
   writeSettings: (values: Record<string, string>) => void;
@@ -31,6 +34,8 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState<SettingsFile | null>(null);
   const [news, setNews] = useState<News | null>(null);
+  const [paused, setPaused] = useState(false);
+  const pausedLaunch = useRef(false);
   const busyRef = useRef(false);
   const pendingWrites = useRef<Record<string, string>>({});
   const writeTimer = useRef<number | undefined>(undefined);
@@ -80,6 +85,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
       busyRef.current = true;
       setBusy(true);
       setError(null);
+      setPaused(false);
       try {
         await action();
         const s = await refresh(false);
@@ -91,7 +97,11 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch (e) {
-        setError(message(e));
+        if (message(e) === "paused") {
+          // a pause the player asked for: the download goes on from there at Resume
+          pausedLaunch.current = launch;
+          setPaused(true);
+        } else setError(message(e));
 
         return false;
       } finally {
@@ -104,6 +114,10 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
   );
   const play = useCallback((launch = true) => run(launch, () => api.play(launch)), [run]);
   const install = useCallback(() => run(false, () => api.installLumenveil()), [run]);
+  const pause = useCallback(async () => {
+    await api.pause();
+  }, []);
+  const resume = useCallback(() => play(pausedLaunch.current), [play]);
 
   const setPrefs = useCallback(async (prefs: Partial<Prefs>) => {
     try {
@@ -147,7 +161,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
       const s = await refresh(true);
 
       await loadSettings();
-      if (s?.game?.ok && !s.running && s.pending.length > 0) play(false);
+      if (s?.game?.ok && !s.running && s.prefs.autoUpdate && s.pending.length > 0) play(false);
     })();
   }, [refresh, loadSettings, play]);
 
@@ -167,7 +181,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
   return (
     <Context.Provider
-      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, install, loadSettings, writeSettings }}
+      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, paused, pause, resume, install, loadSettings, writeSettings }}
     >
       {children}
     </Context.Provider>

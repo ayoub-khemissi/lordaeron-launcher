@@ -1,5 +1,5 @@
-import { Button, Progress as Bar, Spinner } from "@heroui/react";
-import { AlertTriangle, CheckCircle2, CloudOff, FolderOpen, Gamepad2, RefreshCw, Sparkles } from "lucide-react";
+import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip } from "@heroui/react";
+import { AlertTriangle, CheckCircle2, ChevronUp, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 import type { Screen } from "../components/Sidebar";
@@ -11,7 +11,7 @@ import type { PendingItem, Progress, RealmDef } from "../lib/types";
 
 export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void; onNews: (t: NewsTarget) => void }) {
   const { t, language } = useI18n();
-  const { status, busy, progress, error, play, setPrefs, settings, refresh, news } = useLauncher();
+  const { status, busy, progress, error, play, setPrefs, settings, refresh, news, paused, pause, resume } = useLauncher();
 
   if (!status) return null;
   const realms = (status.feed?.realms ?? []).filter((r) => !r.hidden || r.id === status.prefs.realm);
@@ -88,9 +88,12 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                   busy={busy}
                   error={error}
                   online={status.online}
+                  paused={paused}
                   pending={status.pending}
                   progress={progress}
                   running={status.running}
+                  onPause={pause}
+                  onResume={resume}
                   onRetry={() => (error ? play(false) : refresh(true))}
                 />
               </div>
@@ -104,7 +107,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
               <button
                 className="play-button h-14 w-52 shrink-0 rounded-xl font-heading text-xl tracking-[0.18em] transition disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-50"
                 disabled={busy || status.running}
-                onClick={() => play(true)}
+                onClick={() => (paused ? resume() : play(true))}
               >
                 {status.running ? (
                   <span className="flex items-center justify-center gap-2">
@@ -114,6 +117,8 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                   <span className="flex items-center justify-center gap-3">
                     <Spinner color="current" size="sm" /> {t("home.updating").toUpperCase()}
                   </span>
+                ) : paused ? (
+                  t("home.resume").toUpperCase()
                 ) : (
                   t("home.play").toUpperCase()
                 )}
@@ -164,46 +169,91 @@ function stepText(t: ReturnType<typeof useI18n>["t"], p: Progress | PendingItem 
   return t(`step.${kind}` as "step.patch", { name: p.name, to: to ?? "" });
 }
 
+function duration(seconds: number, language: string) {
+  const s = Math.max(1, Math.round(seconds));
+  const unit = (value: number, u: "minute" | "second") =>
+    new Intl.NumberFormat(language, { style: "unit", unit: u, unitDisplay: "narrow" }).format(value);
+
+  return s >= 60 ? `${unit(Math.floor(s / 60), "minute")} ${unit(s % 60, "second")}` : unit(s, "second");
+}
+
 function StatusLine(props: {
   busy: boolean;
   error: string | null;
   online: boolean;
+  paused: boolean;
   pending: PendingItem[];
   progress: Progress | null;
   running: boolean;
   onRetry: () => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
-  const { t, bytes } = useI18n();
-  const { busy, error, online, pending, progress, running, onRetry } = props;
+  const { t, bytes, language } = useI18n();
+  const { busy, error, online, paused, pending, progress, running, onRetry, onPause, onResume } = props;
+  const downloading = progress && (progress.step === "patch" || progress.step === "lumenveil");
 
   if (busy && progress && progress.step !== "done") {
     const ratio = progress.total > 0 ? progress.done / progress.total : 0;
-    const counter = progress.count > 1 ? ` (${progress.index + 1}/${progress.count})` : "";
+    const counter = progress.count > 1 ? ` · ${t("home.step", { index: progress.index + 1, count: progress.count })}` : "";
+    const left = progress.speed > 0 ? (progress.total - progress.done) / progress.speed : 0;
 
     return (
-      <div>
-        <div className="mb-2 flex items-baseline justify-between gap-4 text-sm">
-          <span className="truncate text-white/85">
-            {stepText(t, progress)}
-            <span className="text-white/40">{counter}</span>
-          </span>
-          {progress.total > 0 && (
-            <span className="shrink-0 tabular-nums text-wow-gold-light">
-              {progress.step === "setup" ? `${Math.round(ratio * 100)} %` : `${bytes(progress.done)} / ${bytes(progress.total)}`}
+      <div className="flex items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-baseline justify-between gap-4 text-[13px]">
+            <span className="truncate text-white/85">
+              {stepText(t, progress)}
+              <span className="text-white/40">{counter}</span>
             </span>
-          )}
+            {progress.total > 0 && (
+              <span className="shrink-0 tabular-nums text-white/55">
+                {progress.step === "setup" ? (
+                  `${Math.round(ratio * 100)} %`
+                ) : (
+                  <>
+                    <span className="text-wow-gold-light">{bytes(progress.done)}</span> / {bytes(progress.total)}
+                    {progress.speed > 0 && (
+                      <>
+                        <span className="mx-2 text-white/20">|</span>
+                        {bytes(progress.speed)}/s
+                        <span className="mx-2 text-white/20">|</span>
+                        {t("home.left", { time: duration(left, language) })}
+                      </>
+                    )}
+                  </>
+                )}
+              </span>
+            )}
+          </div>
+          <Bar
+            aria-label={stepText(t, progress)}
+            classNames={{ indicator: "bg-gradient-to-r from-wow-gold-dark via-wow-gold to-wow-gold-light", track: "bg-white/10" }}
+            isIndeterminate={progress.total === 0}
+            size="sm"
+            value={ratio * 100}
+          />
         </div>
-        <Bar
-          aria-label={stepText(t, progress)}
-          classNames={{ indicator: "bg-gradient-to-r from-wow-gold-dark via-wow-gold to-wow-gold-light", track: "bg-white/10" }}
-          isIndeterminate={progress.total === 0}
-          size="sm"
-          value={ratio * 100}
-        />
+        {downloading && (
+          <Tooltip content={t("home.pause")}>
+            <Button isIconOnly aria-label={t("home.pause")} radius="full" size="sm" variant="flat" onPress={onPause}>
+              <Pause size={15} />
+            </Button>
+          </Tooltip>
+        )}
       </div>
     );
   }
   if (busy) return <Line icon={<Spinner color="primary" size="sm" />} text={t("home.checking")} />;
+  if (paused)
+    return (
+      <div className="flex items-center gap-4">
+        <Line icon={<Pause className="text-wow-gold" size={20} />} sub={t("home.pausedHint")} text={t("home.paused")} />
+        <Button className="ml-auto" color="primary" size="sm" startContent={<PlayIcon size={14} />} variant="flat" onPress={onResume}>
+          {t("home.resumeDownload")}
+        </Button>
+      </div>
+    );
   if (error)
     return (
       <div className="flex items-center gap-3">
@@ -232,11 +282,36 @@ function StatusLine(props: {
     const size = pending.reduce((n, p) => n + p.size, 0);
 
     return (
-      <Line
-        icon={<RefreshCw className="text-wow-gold" size={20} />}
-        sub={pending.map((p) => stepText(t, p)).join(" · ")}
-        text={size > 0 ? t("home.pending", { count: pending.length, size: bytes(size) }) : t("home.pendingNoSize", { count: pending.length })}
-      />
+      <Popover placement="top-start">
+        <PopoverTrigger>
+          <button className="group flex items-center gap-3 rounded-lg text-left">
+            <RefreshCw className="shrink-0 text-wow-gold" size={20} />
+            <div className="min-w-0">
+              <p className="text-[15px] text-white/90">
+                {size > 0 ? t("home.pending", { count: pending.length, size: bytes(size) }) : t("home.pendingNoSize", { count: pending.length })}
+              </p>
+              <p className="flex items-center gap-1 text-xs text-white/45 group-hover:text-wow-gold-light">
+                {t("home.details")} <ChevronUp size={12} />
+              </p>
+            </div>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[380px] border border-white/10 bg-wow-panel p-0">
+          <div className="w-full p-4">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-wow-gold/80">{t("home.toInstall")}</p>
+            <ul className="space-y-2.5">
+              {pending.map((p) => (
+                <li key={`${p.kind}-${p.name}`} className="flex items-center gap-3 text-[13px]">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-wow-gold" />
+                  <span className="min-w-0 flex-1 text-white/80">{stepText(t, p)}</span>
+                  {p.size > 0 && <span className="shrink-0 tabular-nums text-white/45">{bytes(p.size)}</span>}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-[11.5px] text-white/40">{t("home.toInstallHint")}</p>
+          </div>
+        </PopoverContent>
+      </Popover>
     );
   }
 
@@ -245,8 +320,8 @@ function StatusLine(props: {
 
 function Line({ icon, text, sub }: { icon: React.ReactNode; text: string; sub?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="shrink-0">{icon}</span>
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="flex shrink-0 items-center">{icon}</span>
       <div className="min-w-0">
         <p className="text-[15px] text-white/90">{text}</p>
         {sub && <p className="truncate text-xs text-white/45">{sub}</p>}

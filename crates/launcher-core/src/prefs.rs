@@ -15,6 +15,8 @@ pub struct Prefs {
     pub after_play: String,
     pub lumenveil: bool,
     pub pending_preset: Option<String>,
+    pub download_limit: u64,
+    pub auto_update: bool,
 }
 
 impl Default for Prefs {
@@ -27,6 +29,8 @@ impl Default for Prefs {
             after_play: "minimize".into(),
             lumenveil: true,
             pending_preset: None,
+            download_limit: 0,
+            auto_update: true,
         }
     }
 }

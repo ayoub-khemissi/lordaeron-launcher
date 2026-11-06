@@ -57,6 +57,7 @@ struct Progress {
     name: String,
     done: u64,
     total: u64,
+    speed: u64,
     index: usize,
     count: usize,
 }
@@ -182,7 +183,12 @@ pub async fn set_prefs(app: AppHandle, state: State<'_, AppState>, prefs: serde_
 }
 
 fn emit(app: &AppHandle, step: &str, name: &str, done: u64, total: u64, index: usize, count: usize) {
-    let _ = app.emit("progress", Progress { step: step.into(), name: name.into(), done, total, index, count });
+    emit_speed(app, step, name, done, total, 0, index, count);
+}
+
+#[allow(clippy::too_many_arguments)]
+fn emit_speed(app: &AppHandle, step: &str, name: &str, done: u64, total: u64, speed: u64, index: usize, count: usize) {
+    let _ = app.emit("progress", Progress { step: step.into(), name: name.into(), done, total, speed, index, count });
 }
 
 struct Busy<'a>(&'a AppState);
@@ -199,9 +205,12 @@ pub async fn play(app: AppHandle, state: State<'_, AppState>, launch: bool) -> R
         return Err("an update is already running".into());
     }
     let _busy = Busy(state.inner());
+    state.paused.store(false, Ordering::SeqCst);
     let result = run_updates(&app, &state, launch).await;
     if let Err(e) = &result {
-        state.log(&format!("play failed: {e:#}"));
+        if e.to_string() != net::PAUSED {
+            state.log(&format!("play failed: {e:#}"));
+        }
     }
     result.map_err(|e| format!("{e:#}"))
 }
@@ -235,8 +244,9 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
                 let url = format!("{}{}", feed.patches_url, step.name);
                 let download = lumenveil::own(&root).join("download").join(&step.name);
                 let (app2, name) = (app.clone(), step.name.clone());
-                net::download(&url, &download, entry.size, &entry.sha256, |done, total| {
-                    emit(&app2, "patch", &name, done, total, index, count)
+                let control = net::Control { paused: &state.paused, limit: prefs.download_limit };
+                net::download(&url, &download, entry.size, &entry.sha256, &control, |s| {
+                    emit_speed(&app2, "patch", &name, s.done, s.total, s.speed, index, count)
                 })
                 .await?;
                 let target = root.join("Data").join(&step.name);
@@ -268,8 +278,9 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
                 let lv = lv.clone().ok_or_else(|| anyhow::anyhow!("Lumenveil is not published"))?;
                 let zip = lumenveil::own(&root).join("download").join(format!("Lumenveil-{}.zip", lv.version));
                 let app2 = app.clone();
-                net::download(&lv.url, &zip, lv.size, &lv.sha256, |done, total| {
-                    emit(&app2, "lumenveil", "Lumenveil", done, total, index, count)
+                let control = net::Control { paused: &state.paused, limit: prefs.download_limit };
+                net::download(&lv.url, &zip, lv.size, &lv.sha256, &control, |s| {
+                    emit_speed(&app2, "lumenveil", "Lumenveil", s.done, s.total, s.speed, index, count)
                 })
                 .await?;
                 let bytes = std::fs::read(&zip)?;
@@ -419,6 +430,12 @@ pub fn write_settings(state: State<'_, AppState>, values: HashMap<String, String
     changes.sort();
     lumenveil::write_settings(&root, &changes).map_err(err)?;
     read_settings(state)
+}
+
+/// Pauses the running download; Play (or Resume) goes on from where it stopped.
+#[tauri::command]
+pub fn pause(state: State<'_, AppState>) {
+    state.paused.store(true, Ordering::SeqCst);
 }
 
 #[tauri::command]
