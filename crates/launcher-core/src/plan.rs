@@ -130,7 +130,8 @@ pub fn plan(input: &PlanInput) -> Vec<PendingItem> {
     let empty = Manifest::new();
     let manifest = input.manifest.unwrap_or(&empty);
 
-    for name in input.feed.managed_patches() {
+    let patches = if input.realm.manage_patches { input.feed.managed_patches() } else { Vec::new() };
+    for name in patches {
         let here = data.join(&name);
         let wanted = input.realm.patches.contains(&name);
         if !wanted {

@@ -24,6 +24,8 @@ pub struct Prefs {
     pub signed_in_as: Option<String>,
     /// at Play, the launcher fills the game's login screen with a one-time ticket
     pub auto_login: bool,
+    /// the signed-in account's security level (the website tells it at sign-in and at each ticket): the team's realms
+    pub security: Option<u8>,
 }
 
 impl Default for Prefs {
@@ -42,6 +44,7 @@ impl Default for Prefs {
             install_id: String::new(),
             signed_in_as: None,
             auto_login: true,
+            security: None,
         }
     }
 }

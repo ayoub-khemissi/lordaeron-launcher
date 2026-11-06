@@ -19,7 +19,8 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
   const signIn = useDisclosure();
 
   if (!status) return null;
-  const realms = (status.feed?.realms ?? []).filter((r) => !r.hidden || r.id === status.prefs.realm);
+  // the backend sends the realms this player sees (the team's ones too for an account of their level)
+  const realms = status.feed?.realms ?? [];
   const realm = realms.find((r) => r.id === status.prefs.realm) ?? realms[0];
   const ice = realm?.accent === "ice";
   const preset = settings
@@ -176,6 +177,11 @@ function RealmCard({ realm, active, disabled, onClick }: { realm: RealmDef; acti
       >
         {realm.name}
       </span>
+      {realm.badge && (
+        <span className="absolute left-3 top-2.5 rounded bg-black/70 px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-widest text-white/80">
+          {realm.badge}
+        </span>
+      )}
       {active && <CheckCircle2 className={`absolute right-2.5 top-2.5 ${ice ? "text-wow-blue-ice" : "text-wow-gold"}`} size={18} />}
     </button>
   );

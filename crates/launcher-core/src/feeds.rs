@@ -73,6 +73,29 @@ pub struct RealmDef {
     pub accent: String,
     #[serde(default)]
     pub hidden: bool,
+    /// shown only to a signed-in account of at least this security level (the team's realms: the Lab)
+    #[serde(default)]
+    pub min_security: u8,
+    /// false: the launcher leaves the game's patches as they are for this realm (a test realm with its own)
+    #[serde(default = "yes")]
+    pub manage_patches: bool,
+    /// a word on its card: "Lab"
+    #[serde(default)]
+    pub badge: Option<String>,
+}
+
+fn yes() -> bool {
+    true
+}
+
+impl RealmDef {
+    /// Whether a player sees this realm: every public one, and the team's to an account of their level.
+    pub fn visible_to(&self, security: Option<u8>) -> bool {
+        if self.min_security == 0 {
+            return !self.hidden;
+        }
+        security.is_some_and(|s| s >= self.min_security)
+    }
 }
 
 /// patches/manifest.json: each patch's version, size and SHA-256.
@@ -111,7 +134,7 @@ impl LauncherFeed {
 
     /// Every patch some realm uses: the launcher puts these in place or aside, and leaves any other MPQ alone.
     pub fn managed_patches(&self) -> Vec<String> {
-        let mut all: Vec<String> = self.realms.iter().flat_map(|r| r.patches.clone()).collect();
+        let mut all: Vec<String> = self.realms.iter().filter(|r| r.manage_patches).flat_map(|r| r.patches.clone()).collect();
         all.sort();
         all.dedup();
         all

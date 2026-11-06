@@ -43,6 +43,7 @@ struct Answer {
     token: Option<String>,
     username: Option<String>,
     ticket: Option<String>,
+    security: Option<u8>,
     error: Option<String>,
 }
 
@@ -66,8 +67,8 @@ async fn post(url: &str, body: serde_json::Value) -> Result<Answer> {
     Ok(answer)
 }
 
-/// Signs in; returns the account name. The token goes to the credential manager.
-pub async fn sign_in(username: &str, password: &str, code: Option<&str>, device: &str) -> Result<String> {
+/// Signs in; returns the account name and its security level. The token goes to the credential manager.
+pub async fn sign_in(username: &str, password: &str, code: Option<&str>, device: &str) -> Result<(String, Option<u8>)> {
     let answer = post(
         LOGIN,
         serde_json::json!({ "username": username, "password": password, "code": code, "device": device }),
@@ -75,7 +76,7 @@ pub async fn sign_in(username: &str, password: &str, code: Option<&str>, device:
     .await?;
     let token = answer.token.ok_or_else(|| coded("other", "no token"))?;
     entry()?.set_password(&token).map_err(|_| coded("other", "credential manager"))?;
-    Ok(answer.username.unwrap_or_else(|| username.to_uppercase()))
+    Ok((answer.username.unwrap_or_else(|| username.to_uppercase()), answer.security))
 }
 
 pub async fn sign_out() {
@@ -85,13 +86,15 @@ pub async fn sign_out() {
     forget();
 }
 
-/// A one-time ticket for this Play: (account name, ticket). A token the website no longer knows is forgotten.
-pub async fn ticket() -> Result<(String, String)> {
+/// A one-time ticket for this Play: (account name, ticket, security level). A token the website no longer knows is
+/// forgotten.
+pub async fn ticket() -> Result<(String, String, Option<u8>)> {
     let token = token().ok_or_else(|| coded("signedOut", ""))?;
     match post(TICKET, serde_json::json!({ "token": token })).await {
         Ok(answer) => Ok((
             answer.username.ok_or_else(|| coded("other", "no account"))?,
             answer.ticket.ok_or_else(|| coded("other", "no ticket"))?,
+            answer.security,
         )),
         Err(e) => {
             if e.to_string() == "signedOut" {

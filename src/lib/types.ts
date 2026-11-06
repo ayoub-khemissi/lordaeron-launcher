@@ -15,6 +15,7 @@ export interface Prefs {
   accountName: string | null; // filled in on the game's login screen
   signedInAs: string | null; // the account signed in to the launcher (its token is in Windows' credential manager)
   autoLogin: boolean; // at Play, the game's login screen is filled with a one-time ticket
+  security: number | null; // the signed-in account's level: the team's realms show from 1
 }
 
 export interface GameInfo {
@@ -32,6 +33,9 @@ export interface RealmDef {
   image: string; // a file of the launcher's own (realms/<id>.webp) or a URL
   accent: "gold" | "ice";
   hidden?: boolean;
+  minSecurity?: number;
+  managePatches?: boolean;
+  badge?: string | null;
 }
 
 export interface Notice {

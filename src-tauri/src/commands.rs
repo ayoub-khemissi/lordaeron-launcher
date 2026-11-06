@@ -74,6 +74,16 @@ struct Progress {
     count: usize,
 }
 
+/// The feed with the realms this player sees: the public ones, and the team's to an account of their level.
+fn visible_feed(feed: &LauncherFeed, prefs: &Prefs) -> LauncherFeed {
+    let mut visible = feed.clone();
+    visible.realms.retain(|r| r.visible_to(prefs.signed_in_as.as_ref().and(prefs.security)));
+    if visible.realms.is_empty() {
+        visible.realms = feed.realms.clone();
+    }
+    visible
+}
+
 fn realm_of(feed: &LauncherFeed, id: &str) -> RealmDef {
     feed.realms.iter().find(|r| r.id == id).or(feed.realms.first()).cloned().expect("at least one realm")
 }
@@ -102,7 +112,8 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
     let feeds = state.feeds.lock().unwrap();
     let root = prefs.game_dir.as_ref().map(PathBuf::from);
     let game = root.as_deref().map(game::check);
-    let realm = realm_of(&feeds.launcher, &prefs.realm);
+    let visible = visible_feed(&feeds.launcher, &prefs);
+    let realm = realm_of(&visible, &prefs.realm);
     let pending = match (&root, &game) {
         (Some(root), Some(g)) if g.ok => plan::plan(&PlanInput {
             root,
@@ -128,7 +139,7 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
     Status {
         game,
         online: feeds.online,
-        feed: feeds.launcher.clone(),
+        feed: visible.clone(),
         lumenveil: LumenveilStatus {
             installed: installed.map(|v| v.to_string()),
             available: feeds.lumenveil.clone(),
@@ -251,7 +262,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
     let prefs = state.prefs();
     let (feed, manifest, lv) = {
         let f = state.feeds.lock().unwrap();
-        (f.launcher.clone(), f.manifest.clone().unwrap_or_default(), f.lumenveil.clone())
+        (visible_feed(&f.launcher, &prefs), f.manifest.clone().unwrap_or_default(), f.lumenveil.clone())
     };
     let count = steps.len();
     let mut patches_changed = false;
@@ -383,9 +394,14 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         let mut ticket = None;
         if prefs.auto_login && prefs.signed_in_as.is_some() {
             match crate::login::ticket().await {
-                Ok((name, t)) => {
+                Ok((name, t, security)) => {
                     game::set_account_name(&root, Some(&name))?;
                     ticket = Some(t);
+                    if security != prefs.security {
+                        let mut p = state.prefs();
+                        p.security = security;
+                        state.save_prefs(p)?;
+                    }
                 }
                 Err(e) => {
                     state.log(&format!("no launcher ticket: {e}"));
@@ -756,11 +772,13 @@ pub async fn account_login(
     code: Option<String>,
 ) -> Res<Status> {
     let device = std::env::var("COMPUTERNAME").unwrap_or_else(|_| "Windows".into());
-    let name = crate::login::sign_in(username.trim(), &password, code.as_deref().filter(|c| !c.trim().is_empty()), &device)
-        .await
-        .map_err(ui)?;
+    let (name, security) =
+        crate::login::sign_in(username.trim(), &password, code.as_deref().filter(|c| !c.trim().is_empty()), &device)
+            .await
+            .map_err(ui)?;
     let mut prefs = state.prefs();
     prefs.signed_in_as = Some(name.clone());
+    prefs.security = security;
     prefs.account_name = Some(name);
     state.save_prefs(prefs).map_err(err)?;
     state.log("signed in");
@@ -772,6 +790,7 @@ pub async fn account_logout(app: AppHandle, state: State<'_, AppState>) -> Res<S
     crate::login::sign_out().await;
     let mut prefs = state.prefs();
     prefs.signed_in_as = None;
+    prefs.security = None;
     state.save_prefs(prefs).map_err(err)?;
     state.log("signed out");
     Ok(compute_status(&app, &state))

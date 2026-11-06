@@ -20,6 +20,7 @@ const prefs: Prefs = {
   accountName: null,
   signedInAs: new URLSearchParams(location.search).has("signed") ? "ARTHAS" : null,
   autoLogin: true,
+  security: null,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [
