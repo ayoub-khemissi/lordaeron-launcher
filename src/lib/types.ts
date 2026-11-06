@@ -12,6 +12,7 @@ export interface Prefs {
   pendingPreset: string | null; // chosen before Lumenveil was installed: applied by the install
   downloadLimit: number; // bytes per second, 0 = no limit
   autoUpdate: boolean; // update as soon as the launcher opens, not only at Play
+  accountName: string | null; // filled in on the game's login screen
 }
 
 export interface GameInfo {

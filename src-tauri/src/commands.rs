@@ -317,6 +317,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         emit(app, "launch", "", 0, 0, count, count);
         // a fresh cache at every start (Ayoub, 06/11/2026): items, quests and creatures always as the server has them
         game::clear_cache(&root);
+        game::set_account_name(&root, prefs.account_name.as_deref())?;
         std::process::Command::new(root.join("Wow.exe"))
             .current_dir(&root)
             .spawn()

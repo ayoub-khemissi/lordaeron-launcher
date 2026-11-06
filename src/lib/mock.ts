@@ -17,6 +17,7 @@ const prefs: Prefs = {
   pendingPreset: null,
   downloadLimit: 0,
   autoUpdate: true,
+  accountName: null,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [

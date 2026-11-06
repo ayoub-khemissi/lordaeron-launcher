@@ -1,6 +1,7 @@
 import {
   addToast,
   Button,
+  Input,
   Modal,
   ModalBody,
   ModalContent,
@@ -13,8 +14,8 @@ import {
   Switch,
   useDisclosure,
 } from "@heroui/react";
-import { CheckCircle2, Download, FileText, FolderOpen, Globe, History, Info, Layers, MessageCircle, RefreshCw, Rocket, Trash2, Wrench, XCircle } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { CheckCircle2, Download, FileText, FolderOpen, Globe, History, Info, Layers, MessageCircle, RefreshCw, Rocket, Trash2, UserRound, Wrench, XCircle } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { PageHeader } from "../components/PageHeader";
 import { LANGUAGES, useI18n } from "../i18n";
@@ -82,6 +83,12 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
             {t("settings.change")}
           </Button>
         </div>
+      </Card>
+
+      <Card icon={<UserRound size={18} />} title={t("settings.account")}>
+        <Row hint={t("settings.accountHint")} label={t("settings.accountName")}>
+          <AccountName value={prefs.accountName ?? ""} onCommit={(v) => setPrefs({ accountName: v.trim() || null })} />
+        </Row>
       </Card>
 
       <div className="grid grid-cols-2 gap-5 [&>section]:mb-5">
@@ -278,6 +285,29 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </ModalContent>
       </Modal>
     </div>
+  );
+}
+
+function AccountName({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
+  const { t } = useI18n();
+  const [text, setText] = useState(value);
+
+  useEffect(() => setText(value), [value]);
+
+  return (
+    <Input
+      aria-label={t("settings.accountName")}
+      autoComplete="off"
+      className="w-56"
+      classNames={{ inputWrapper: "bg-white/5" }}
+      placeholder={t("settings.accountPlaceholder")}
+      size="sm"
+      spellCheck="false"
+      value={text}
+      onBlur={() => text !== value && onCommit(text)}
+      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      onValueChange={setText}
+    />
   );
 }
 

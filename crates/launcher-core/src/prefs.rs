@@ -17,6 +17,7 @@ pub struct Prefs {
     pub pending_preset: Option<String>,
     pub download_limit: u64,
     pub auto_update: bool,
+    pub account_name: Option<String>,
 }
 
 impl Default for Prefs {
@@ -31,6 +32,7 @@ impl Default for Prefs {
             pending_preset: None,
             download_limit: 0,
             auto_update: true,
+            account_name: None,
         }
     }
 }

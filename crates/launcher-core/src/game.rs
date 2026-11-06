@@ -153,6 +153,22 @@ pub fn set_realm(root: &Path, locale: &str, realmlist: &str, realm: &str) -> any
     Ok(())
 }
 
+/// The account name the login screen shows already filled in (Config.wtf's accountName, read by GlueXML's
+/// GetSavedAccountName, what the client's own "Remember account name" keeps). None or empty leaves the file alone.
+pub fn set_account_name(root: &Path, name: Option<&str>) -> anyhow::Result<()> {
+    let file = root.join("WTF").join("Config.wtf");
+    let config = fs::read_to_string(&file).unwrap_or_default();
+    let updated = match name.map(str::trim).filter(|n| !n.is_empty()) {
+        Some(name) => set_cvar(&config, "accountName", name),
+        None => return Ok(()),
+    };
+    if updated != config {
+        fs::create_dir_all(root.join("WTF"))?;
+        fs::write(&file, updated)?;
+    }
+    Ok(())
+}
+
 /// The client's caches of items, creatures and quests: stale after a patch or a realm change.
 pub fn clear_cache(root: &Path) {
     let _ = fs::remove_dir_all(root.join("Cache"));
@@ -191,6 +207,14 @@ mod tests {
         let config = fs::read_to_string(dir.path().join("WTF/Config.wtf")).unwrap();
         assert!(config.contains("gxResolution"));
         assert_eq!(config.matches("realmName").count(), 1);
+    }
+
+    #[test]
+    fn remembers_the_account() {
+        let dir = tempfile::tempdir().unwrap();
+        set_account_name(dir.path(), Some("ARTHAS")).unwrap();
+        let config = fs::read_to_string(dir.path().join("WTF/Config.wtf")).unwrap();
+        assert!(config.contains("SET accountName \"ARTHAS\""));
     }
 
     #[test]
