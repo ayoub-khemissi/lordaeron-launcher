@@ -289,6 +289,10 @@
   },
   "GreenZones": {
    "help": "The zones that count as green (humid haze, more clouds), by zone number, comma-separated."
+  },
+  "PlainGame": {
+   "label": "Original game",
+   "help": "On: the game shows without Lumenveil, as the compare key shows it, at once and at every start. Off: Lumenveil shows."
   }
  }
 }

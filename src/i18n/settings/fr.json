@@ -697,6 +697,10 @@
   "GreenZones": {
    "label": "Zones vertes",
    "help": "Les zones qui comptent comme vertes (voile humide, plus de nuages), par numéro de zone, séparées par des virgules."
+  },
+  "PlainGame": {
+   "label": "Jeu d'origine",
+   "help": "Activé : le jeu s'affiche sans Lumenveil, comme avec la touche de comparaison, immédiatement et à chaque lancement. Désactivé : Lumenveil s'affiche."
   }
  }
 }

@@ -16,6 +16,7 @@ import {
   Switch,
   Tab,
   Tabs,
+  Tooltip,
   useDisclosure,
 } from "@heroui/react";
 import { CircleCheck, Download, History, Info, MoreHorizontal, Radio, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
@@ -26,7 +27,7 @@ import { PageHeader, Pill } from "../components/PageHeader";
 import { PresetCard } from "../components/PresetCard";
 import { SettingRow } from "../components/SettingRow";
 import { useI18n } from "../i18n";
-import { changedKeys, currentPreset, presetChanges, serialize, valuesOf } from "../lib/settings";
+import { changedKeys, currentPreset, NOT_LOOK_KEYS, presetChanges, serialize, valuesOf } from "../lib/settings";
 import { api } from "../lib/api";
 import { errorText } from "../lib/errors";
 import { useLauncher } from "../lib/store";
@@ -48,7 +49,8 @@ export function GraphicsScreen() {
 
   const toggle = async (value: boolean) => {
     await setPrefs({ lumenveil: value });
-    if (settings) writeSettings({ Enable: value ? "1" : "0" });
+    // as Ctrl+F12 in the game, at once, and kept at the next start (PlainGame, Lumenveil 0.7.0)
+    if (settings) writeSettings({ Enable: "1", PlainGame: value ? "0" : "1" });
   };
 
   const rollback = async () => {
@@ -90,6 +92,7 @@ export function GraphicsScreen() {
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
+              <Tooltip content={t("graphics.switchHint")} delay={300} placement="bottom-end">
               <Switch
                 aria-label={t("graphics.title")}
                 classNames={{ label: "text-[13px] font-medium text-white/80" }}
@@ -99,6 +102,7 @@ export function GraphicsScreen() {
               >
                 {on ? t("graphics.on") : t("graphics.off")}
               </Switch>
+              </Tooltip>
             </>
           ) : null
         }
@@ -262,7 +266,7 @@ function PresetsTab({ file, onChange }: { file: SettingsFile; onChange: (v: Reco
   const confirm = useDisclosure();
 
   const resetAll = () => {
-    const keep = new Set(["Enable"]);
+    const keep = NOT_LOOK_KEYS;
 
     onChange(
       Object.fromEntries(

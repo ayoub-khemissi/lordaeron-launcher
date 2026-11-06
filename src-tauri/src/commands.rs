@@ -119,7 +119,7 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
     let enabled = root
         .as_deref()
         .and_then(|r| lumenveil::read_settings(r).ok())
-        .map(|v| v.get("Enable").map_or(true, |e| e.trim() != "0"))
+        .map(|v| v.get("PlainGame").map_or(true, |e| e.trim() != "1"))
         .unwrap_or(false);
     let patches = match (&root, &game) {
         (Some(root), Some(g)) if g.ok => plan::patch_states(root, &feeds.launcher, feeds.manifest.as_ref()),
@@ -359,7 +359,11 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         plan::clean(&root, &manifest);
     }
     if lumenveil::installed(&root).is_some() {
-        let mut values: Vec<(String, String)> = vec![("Enable".into(), if prefs.lumenveil { "1" } else { "0" }.into())];
+        // the switch is PlainGame (read live, as Ctrl+F12); Enable, read at start only, stays on so the switch can act
+        let mut values: Vec<(String, String)> = vec![
+            ("Enable".into(), "1".into()),
+            ("PlainGame".into(), if prefs.lumenveil { "0" } else { "1" }.into()),
+        ];
         if first_install {
             if let Some(preset) = prefs.pending_preset.as_deref() {
                 values.extend(preset_values(&root, preset));

@@ -71,7 +71,7 @@ const en = {
   "graphics.version": "Lumenveil {version}",
   "graphics.notInstalled": "Installed the next time you press Play ({size})",
   "graphics.updateReady": "Version {version} is installed the next time you press Play",
-  "graphics.offHint": "Turn it on to play with the enhanced graphics. Your settings are kept.",
+  "graphics.offHint": "The game shows without Lumenveil, at once and at the next starts. Your settings are kept.",
   "graphics.restart": "Takes effect at the next start of the game",
   "graphics.live": "Applied live in the game",
   "graphics.liveRunning": "Applied live in the game",
@@ -110,6 +110,7 @@ const en = {
   "graphics.uninstall": "Uninstall",
 
   "graphics.more": "More actions",
+  "graphics.switchHint": "Turns Lumenveil off and on at once, even in the game (as Ctrl+F12), and keeps your choice for the next start.",
   "graphics.on": "On",
   "graphics.off": "Off",
   "graphics.installButton": "Install",

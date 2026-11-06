@@ -102,6 +102,8 @@ export function changedKeys(schema: Schema, values: Record<string, Value>): stri
 
 // Settings the game reads only when it starts (CoAVolFog.ini's header); FarClipMax only when it is lifted from 0
 export const RESTART_KEYS = new Set(["Enable", "EngineHooks", "Overlay"]);
+// kept as they are by "Back to the default settings": the on/off switch is the player's choice, not a look
+export const NOT_LOOK_KEYS = new Set(["Enable", "PlainGame"]);
 
 export function displayNumber(def: SettingDef, value: number, language: string): string {
   // the game's own words for a yard: "yd" in English, the metre's symbol in the other clients

@@ -72,7 +72,7 @@ const fr: Partial<Messages> = {
   "graphics.version": "Lumenveil {version}",
   "graphics.notInstalled": "Installé au prochain appui sur Jouer ({size})",
   "graphics.updateReady": "La version {version} s'installera au prochain appui sur Jouer",
-  "graphics.offHint": "Activez-les pour jouer avec les graphismes améliorés. Vos réglages sont conservés.",
+  "graphics.offHint": "Le jeu s'affiche sans Lumenveil, immédiatement et aux prochains lancements. Vos réglages sont conservés.",
   "graphics.restart": "Prend effet au prochain démarrage du jeu",
   "graphics.live": "Appliqués en direct en jeu",
   "graphics.liveRunning": "Appliqué en direct dans le jeu",
@@ -111,6 +111,7 @@ const fr: Partial<Messages> = {
   "graphics.uninstall": "Désinstaller",
 
   "graphics.more": "Plus d'actions",
+  "graphics.switchHint": "Désactive et réactive Lumenveil immédiatement, même en jeu (comme Ctrl+F12), et garde votre choix au prochain lancement.",
   "graphics.on": "Activés",
   "graphics.off": "Désactivés",
   "graphics.installButton": "Installer",
