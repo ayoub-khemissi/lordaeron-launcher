@@ -5,7 +5,11 @@ import { HotkeyParts } from "../components/HotkeyInput";
 import { PageHeader } from "../components/PageHeader";
 import { useI18n } from "../i18n";
 import { api } from "../lib/api";
+import { sitePage } from "../lib/site";
 import { useLauncher } from "../lib/store";
+
+// our Lumenveil build's source: the archive published beside it on lordaeron.eu, else the site's launcher page that links it
+const lordaeronSource = (url?: string | null) => (url?.startsWith("https://lordaeron.eu/") ? url : null);
 
 // The keys as the player's CoAVolFog.ini sets them (the defaults until Lumenveil is installed)
 const KEYS = [
@@ -20,7 +24,7 @@ const KEYS = [
 const TIPS = ["guide.tip.live", "guide.tip.slow", "guide.tip.off", "guide.tip.screens"] as const;
 
 export function GuideScreen() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { settings, status } = useLauncher();
   const keys = useMemo(
     () => Object.fromEntries(KEYS.map((k) => [k.id, settings?.values[k.key] || k.fallback])),
@@ -69,7 +73,7 @@ export function GuideScreen() {
           </button>
           <button
             className="flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 px-3 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
-            onClick={() => api.open("url", status?.lumenveil.available?.source || "https://github.com/ayoub-khemissi/Lumenveil")}
+            onClick={() => api.open("url", lordaeronSource(status?.lumenveil.available?.source) ?? sitePage(language, "/launcher"))}
           >
             <Code2 size={14} /> {t("guide.source")}
           </button>

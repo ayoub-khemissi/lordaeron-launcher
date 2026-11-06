@@ -82,7 +82,7 @@ function status(): Status {
         size: 1_400_000,
         sha256: "3b0a5a7072350597156862adb08dc26741ed9dab123b2265bf8a0bbd7cd03697",
         notes: "- The launcher installs and updates Lumenveil.",
-        source: "https://github.com/ayoub-khemissi/Lumenveil",
+        source: "https://lordaeron.eu/patches/lumenveil/Lumenveil-0.7.2-source.zip",
         credits: "Lumenveil by the Lumenveil authors",
       },
     },
