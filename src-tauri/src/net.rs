@@ -11,6 +11,7 @@ use tokio::io::AsyncWriteExt;
 pub const LAUNCHER_FEED: &str = "https://lordaeron.eu/patches/launcher/launcher.json";
 pub const NEWS_FEED: &str = "https://lordaeron.eu/patches/launcher/news.json";
 pub const NEWS_PAGES: &str = "https://lordaeron.eu/patches/launcher/";
+pub const TRUSTED: &str = "https://lordaeron.eu/";
 pub const REPORTS: &str = "https://lordaeron.eu/api/launcher/reports";
 pub const UPDATE_STABLE: &str = "https://lordaeron.eu/patches/launcher/update.json";
 pub const UPDATE_TEST: &str = "https://lordaeron.eu/patches/launcher/update-test.json";
@@ -20,6 +21,7 @@ fn client(timeout: Duration) -> Result<reqwest::Client> {
         .user_agent(concat!("LordaeronLauncher/", env!("CARGO_PKG_VERSION")))
         .connect_timeout(Duration::from_secs(8))
         .timeout(timeout)
+        .https_only(true)
         .build()?)
 }
 
@@ -59,6 +61,10 @@ pub async fn download(
 ) -> Result<()> {
     use std::sync::atomic::Ordering;
 
+    // everything the launcher puts in the game folder comes from lordaeron.eu, over HTTPS, checked by its SHA-256
+    if !url.starts_with(TRUSTED) {
+        return Err(launcher_core::error::coded("badPackage", url));
+    }
     if let Some(parent) = target.parent() {
         tokio::fs::create_dir_all(parent).await?;
     }

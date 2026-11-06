@@ -225,8 +225,10 @@ mod tests {
         let root = dir.path();
         let mut f = feed();
         f.files = serde_json::from_str(&format!(
-            r#"[{{"path":"Interface/AddOns/Rime/Rime.toc","url":"https://x/Rime.toc","sha256":"{}","size":3,"realms":["rimeheart"]}},
-                {{"path":"../evil","url":"https://x","sha256":"00","size":1}}]"#,
+            r#"[{{"path":"Interface/AddOns/Rime/Rime.toc","url":"https://lordaeron.eu/x/Rime.toc","sha256":"{}","size":3,"realms":["rimeheart"]}},
+                {{"path":"../evil","url":"https://lordaeron.eu/x","sha256":"00","size":1}},
+                {{"path":"evil.dll","url":"https://lordaeron.eu/x","sha256":"00","size":1}},
+                {{"path":"other.txt","url":"https://elsewhere.example/x","sha256":"00","size":1}}]"#,
             hex::encode(Sha256::digest(b"abc"))
         ))
         .unwrap();
@@ -239,7 +241,8 @@ mod tests {
                 .collect::<Vec<_>>()
         };
         assert!(plan_for(&rime).contains(&("file", "Interface/AddOns/Rime/Rime.toc".into())));
-        assert!(!plan_for(&rime).iter().any(|(_, n)| n.contains("evil")), "a path out of the folder is ignored");
+        assert!(!plan_for(&rime).iter().any(|(_, n)| n.contains("evil")), "out of the folder, or a program: ignored");
+        assert!(!plan_for(&rime).iter().any(|(_, n)| n == "other.txt"), "from another site: ignored");
         fs::create_dir_all(root.join("Interface/AddOns/Rime")).unwrap();
         fs::write(root.join("Interface/AddOns/Rime/Rime.toc"), b"abc").unwrap();
         assert!(!plan_for(&rime).iter().any(|(k, _)| *k == "file"));

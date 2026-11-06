@@ -89,6 +89,28 @@ fn realm_of(feed: &LauncherFeed, id: &str) -> RealmDef {
 }
 
 async fn refresh_feeds(state: &AppState) {
+    // the sign-in: still good, and the account's level for the team's realms
+    if state.prefs().signed_in_as.is_some() {
+        match crate::login::me().await {
+            Ok((name, security)) => {
+                let mut p = state.prefs();
+                if p.security != security || (!name.is_empty() && p.signed_in_as.as_deref() != Some(&name)) {
+                    p.security = security;
+                    if !name.is_empty() {
+                        p.signed_in_as = Some(name);
+                    }
+                    let _ = state.save_prefs(p);
+                }
+            }
+            Err(e) if e.to_string() == "signedOut" => {
+                let mut p = state.prefs();
+                p.signed_in_as = None;
+                p.security = None;
+                let _ = state.save_prefs(p);
+            }
+            Err(_) => {}
+        }
+    }
     let channel = state.prefs().channel;
     let launcher = net::json::<LauncherFeed>(net::LAUNCHER_FEED).await;
     let online = launcher.is_ok();

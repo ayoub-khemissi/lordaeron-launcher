@@ -14,6 +14,7 @@ use serde::Deserialize;
 const LOGIN: &str = "https://lordaeron.eu/api/launcher/login";
 const TICKET: &str = "https://lordaeron.eu/api/launcher/ticket";
 const LOGOUT: &str = "https://lordaeron.eu/api/launcher/logout";
+const ME: &str = "https://lordaeron.eu/api/launcher/me";
 const SERVICE: &str = "Lordaeron Launcher";
 const USER: &str = "device";
 
@@ -35,6 +36,7 @@ fn client() -> Result<reqwest::Client> {
     Ok(reqwest::Client::builder()
         .user_agent(concat!("LordaeronLauncher/", env!("CARGO_PKG_VERSION")))
         .timeout(Duration::from_secs(20))
+        .https_only(true)
         .build()?)
 }
 
@@ -77,6 +79,20 @@ pub async fn sign_in(username: &str, password: &str, code: Option<&str>, device:
     let token = answer.token.ok_or_else(|| coded("other", "no token"))?;
     entry()?.set_password(&token).map_err(|_| coded("other", "credential manager"))?;
     Ok((answer.username.unwrap_or_else(|| username.to_uppercase()), answer.security))
+}
+
+/// As the launcher opens: the signed-in account and its level, or the error signedOut (then the token is forgotten).
+pub async fn me() -> Result<(String, Option<u8>)> {
+    let token = token().ok_or_else(|| coded("signedOut", ""))?;
+    match post(ME, serde_json::json!({ "token": token })).await {
+        Ok(answer) => Ok((answer.username.unwrap_or_default(), answer.security)),
+        Err(e) => {
+            if e.to_string() == "signedOut" {
+                forget();
+            }
+            Err(e)
+        }
+    }
 }
 
 pub async fn sign_out() {

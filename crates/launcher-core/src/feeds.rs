@@ -45,7 +45,12 @@ impl ManagedFile {
     /// A path the launcher may write: relative, inside the game folder.
     pub fn safe(&self) -> bool {
         let p = &self.path;
-        !p.is_empty() && !p.starts_with('/') && !p.starts_with('\\') && !p.contains(':') && !p.split(['/', '\\']).any(|s| s == "..")
+        let inside = !p.is_empty()
+            && !p.starts_with('/')
+            && !p.starts_with('\\')
+            && !p.contains(':')
+            && !p.split(['/', '\\']).any(|s| s == "..");
+        inside && !crate::lumenveil::runnable(p) && self.url.starts_with("https://lordaeron.eu/")
     }
 }
 

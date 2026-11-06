@@ -64,6 +64,20 @@ fn safe(relative: &str) -> bool {
     !relative.is_empty() && !relative.split('/').any(|p| p == ".." || p.contains(':'))
 }
 
+/// A file Windows would run (a program, a library, a script): never one the server declares as a plain file, and in a
+/// Lumenveil release only the ones it is made of.
+pub fn runnable(path: &str) -> bool {
+    const KINDS: &[&str] = &[
+        "exe", "dll", "bat", "cmd", "ps1", "psm1", "vbs", "vbe", "js", "jse", "wsf", "wsh", "scr", "com", "msi", "msp",
+        "lnk", "reg", "hta", "cpl", "sys", "pif", "jar",
+    ];
+    let name = path.rsplit(['/', '\\']).next().unwrap_or(path).to_ascii_lowercase();
+    name.rsplit_once('.').is_some_and(|(_, ext)| KINDS.contains(&ext))
+}
+
+const RELEASE_PROGRAMS: &[&str] =
+    &["version.dll", "CoAVolFog.dll", "Lumenveil/lamp_extract.exe", "Lumenveil-Setup.cmd", "Lumenveil-Uninstall.cmd"];
+
 /// A release zip's files, by relative path with forward slashes (the zips made by Compress-Archive use backslashes).
 pub fn read_zip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>> {
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes)).map_err(|_| coded("badPackage", ""))?;
@@ -75,6 +89,10 @@ pub fn read_zip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>> {
             continue;
         }
         if !safe(&name) {
+            return Err(coded("badPackage", name));
+        }
+        // a program in the release that Lumenveil is not made of (the old updater's .cmd files are left out later)
+        if runnable(&name) && !RELEASE_PROGRAMS.contains(&name.as_str()) && !updater_file(&name) {
             return Err(coded("badPackage", name));
         }
         let mut data = Vec::with_capacity(entry.size() as usize);
@@ -344,6 +362,14 @@ mod tests {
         uninstall(root).unwrap();
         assert!(installed(root).is_none());
         assert!(!root.join("CoAVolFog.ini").exists());
+    }
+
+    #[test]
+    fn knows_what_runs() {
+        assert!(runnable("Lumenveil/evil.EXE"));
+        assert!(runnable("x.ps1"));
+        assert!(!runnable("Data/patch-W.MPQ"));
+        assert!(!runnable("Interface/AddOns/A/A.lua"));
     }
 
     #[test]
