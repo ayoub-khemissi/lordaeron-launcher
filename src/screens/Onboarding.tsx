@@ -81,7 +81,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           >
             {current === "welcome" && (
               <div className="flex flex-col items-center text-center">
-                <img alt="" className="h-28 w-28 drop-shadow-[0_0_30px_rgba(199,156,62,0.35)]" src="/logo.webp" />
+                <div className="relative flex h-32 w-32 items-center justify-center">
+                  <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(199,156,62,0.35),transparent_68%)]" />
+                  <img alt="" className="relative h-28 w-28" src="/logo.webp" />
+                </div>
                 <h1 className="mt-4 font-heading text-4xl text-gold-gradient">{t("onboarding.welcome")}</h1>
                 <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-white/65">{t("onboarding.welcomeText")}</p>
                 <Select
@@ -106,7 +109,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <div className="mt-5 space-y-2">
                   {games === null ? (
                     <div className="flex items-center gap-3 py-6 text-sm text-white/55">
-                      <Spinner color="warning" size="sm" /> {t("onboarding.searching")}
+                      <Spinner color="primary" size="sm" /> {t("onboarding.searching")}
                     </div>
                   ) : (
                     <>
@@ -191,7 +194,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <div className="mt-4">
                   <CompareSlider height={220} scene="02" />
                 </div>
-                <Switch className="mt-5" color="warning" isSelected={graphics} onValueChange={setGraphics}>
+                <Switch className="mt-5" color="primary" isSelected={graphics} onValueChange={setGraphics}>
                   <span className="text-sm">{t("onboarding.graphicsOn")}</span>
                 </Switch>
                 <div className={`mt-4 grid grid-cols-3 gap-3 transition ${graphics ? "" : "pointer-events-none opacity-40"}`}>

@@ -12,13 +12,16 @@ import {
   SelectItem,
   useDisclosure,
 } from "@heroui/react";
-import { CheckCircle2, FileText, FolderOpen, Globe, History, MessageCircle, Trash2, Wrench, XCircle } from "lucide-react";
+import { CheckCircle2, FileText, FolderOpen, Globe, History, Info, Layers, MessageCircle, Rocket, Trash2, Wrench, XCircle } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { PageHeader } from "../components/PageHeader";
 import { LANGUAGES, useI18n } from "../i18n";
 import { api } from "../lib/api";
 import { useLauncher } from "../lib/store";
 import type { GameInfo } from "../lib/types";
+
+const RADIO = { label: "text-[14px] font-medium text-white/90", description: "text-[12px] text-white/45" };
 
 export function gameProblemText(t: ReturnType<typeof useI18n>["t"], game: GameInfo) {
   return game.ok
@@ -50,8 +53,9 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
   };
 
   return (
-    <div className="thin-scroll h-full overflow-y-auto px-8 pb-10 pt-7">
-      <h1 className="font-heading text-3xl text-gold-gradient">{t("settings.title")}</h1>
+    <div className="flex h-full flex-col">
+      <PageHeader title={t("settings.title")} />
+      <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-8 pb-10">
 
       <Card icon={<FolderOpen size={18} />} title={t("settings.game")}>
         <p className="text-[13px] text-white/45">{t("settings.gameHint")}</p>
@@ -76,7 +80,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2 gap-5 [&>section]:mb-5">
         <Card icon={<Globe size={18} />} title={t("settings.language")}>
           <Select
             aria-label={t("settings.language")}
@@ -94,7 +98,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
             ))}
           </Select>
         </Card>
-        <Card title={t("settings.afterPlay")}>
+        <Card icon={<Rocket size={18} />} title={t("settings.afterPlay")}>
           <Select
             aria-label={t("settings.afterPlay")}
             classNames={{ trigger: "bg-white/5" }}
@@ -109,17 +113,18 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </Card>
       </div>
 
-      <Card title={t("settings.channel")}>
+      <Card icon={<Layers size={18} />} title={t("settings.channel")}>
         <RadioGroup
-          color="warning"
+          classNames={{ wrapper: "gap-8" }}
+          color="primary"
           orientation="horizontal"
           value={prefs.channel}
           onValueChange={(v) => setPrefs({ channel: v as typeof prefs.channel })}
         >
-          <Radio className="mr-6" description={t("settings.channel.stableHint")} value="stable">
+          <Radio classNames={RADIO} description={t("settings.channel.stableHint")} value="stable">
             {t("settings.channel.stable")}
           </Radio>
-          <Radio description={t("settings.channel.testHint")} value="test">
+          <Radio classNames={RADIO} description={t("settings.channel.testHint")} value="test">
             {t("settings.channel.test")}
           </Radio>
         </RadioGroup>
@@ -169,7 +174,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </div>
       </Card>
 
-      <Card title={t("settings.about")}>
+      <Card icon={<Info size={18} />} title={t("settings.about")}>
         <div className="flex flex-wrap items-center gap-3 text-[13px] text-white/55">
           <span>{t("settings.launcherVersion", { version: status.launcherVersion })}</span>
           {status.lumenveil.installed && <span>· {t("graphics.version", { version: status.lumenveil.installed })}</span>}
@@ -189,6 +194,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </div>
       </Card>
 
+      </div>
       <Modal backdrop="blur" isOpen={uninstall.isOpen} onOpenChange={uninstall.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t("settings.uninstall")}</ModalHeader>
@@ -220,7 +226,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
 
 function Card({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
   return (
-    <section className="mt-5 rounded-2xl border border-white/8 bg-white/[0.025] p-5">
+    <section className="mb-5 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
       <h2 className="mb-3 flex items-center gap-2 text-[15px] font-medium text-white/90">
         {icon && <span className="text-wow-gold">{icon}</span>}
         {title}

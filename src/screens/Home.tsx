@@ -203,7 +203,7 @@ function StatusLine(props: {
       </div>
     );
   }
-  if (busy) return <Line icon={<Spinner color="warning" size="sm" />} text={t("home.checking")} />;
+  if (busy) return <Line icon={<Spinner color="primary" size="sm" />} text={t("home.checking")} />;
   if (error)
     return (
       <div className="flex items-center gap-3">

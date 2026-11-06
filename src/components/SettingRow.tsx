@@ -129,7 +129,7 @@ function Control({ def, id, value, set }: { def: SettingDef; id: string; value: 
 
   switch (def.type) {
     case "bool":
-      return <Switch aria-label={id} color="warning" isSelected={Boolean(value)} size="sm" onValueChange={set} />;
+      return <Switch aria-label={id} color="primary" isSelected={Boolean(value)} size="sm" onValueChange={set} />;
     case "choice":
       return (
         <Select
@@ -160,7 +160,7 @@ function Control({ def, id, value, set }: { def: SettingDef; id: string; value: 
         <div className="flex items-center gap-3">
           <Switch
             aria-label={id}
-            color="warning"
+            color="primary"
             isSelected={lifted}
             size="sm"
             onValueChange={(on) => set(on ? def.max! : 0)}

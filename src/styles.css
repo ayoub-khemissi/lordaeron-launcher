@@ -20,6 +20,7 @@
 @theme {
   --font-sans: "Lexend", system-ui, sans-serif;
   --font-heading: "Friz Quadrata", Georgia, serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
   --color-wow-gold: #c79c3e;
   --color-wow-gold-light: #e0be6e;
   --color-wow-gold-dark: #8a6b2a;

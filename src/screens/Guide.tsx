@@ -2,6 +2,7 @@ import { Code2, Lightbulb } from "lucide-react";
 import { useMemo } from "react";
 
 import { HotkeyParts } from "../components/HotkeyInput";
+import { PageHeader } from "../components/PageHeader";
 import { useI18n } from "../i18n";
 import { api } from "../lib/api";
 import { useLauncher } from "../lib/store";
@@ -27,11 +28,10 @@ export function GuideScreen() {
   );
 
   return (
-    <div className="thin-scroll h-full overflow-y-auto px-8 pb-10 pt-7">
-      <h1 className="font-heading text-3xl text-gold-gradient">{t("guide.title")}</h1>
-      <p className="mt-1.5 text-sm text-white/55">{t("guide.subtitle")}</p>
-
-      <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-3">
+    <div className="flex h-full flex-col">
+      <PageHeader subtitle={t("guide.subtitle")} title={t("guide.title")} />
+      <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-8 pb-10">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
         {KEYS.map((k, i) => (
           <div
             key={k.id}
@@ -62,18 +62,19 @@ export function GuideScreen() {
         <p className="flex-1">{t("guide.credits")}</p>
         <div className="flex shrink-0 flex-col gap-2">
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
+            className="flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 px-3 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
             onClick={() => api.open("url", "https://github.com/lumenveil/Lumenveil")}
           >
             <Code2 size={14} /> {t("guide.official")}
           </button>
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
+            className="flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 px-3 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
             onClick={() => api.open("url", status?.lumenveil.available?.source || "https://github.com/ayoub-khemissi/Lumenveil")}
           >
             <Code2 size={14} /> {t("guide.source")}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

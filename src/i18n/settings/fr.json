@@ -4,7 +4,7 @@
   "density": "Brouillard",
   "light": "Lumière",
   "colour": "Couleurs",
-  "shafts": "Rayons du soleil et de la lune",
+  "shafts": "Rayons de lumière",
   "drift": "Nappes et brumes",
   "weather": "Météo",
   "openLand": "Grands espaces",
@@ -470,22 +470,70 @@
    "label": "Distance du relief",
    "help": "Le relief s'affiche jusqu'à cette distance et s'estompe sur son dernier quart."
   },
-  "ReliefRoads": { "label": "Routes", "help": "Routes, dallages, pavés et sols pavés, dehors et dans les bâtiments." },
-  "ReliefRock": { "label": "Roche", "help": "Roche, falaises, gravier, rochers et grottes." },
-  "ReliefDirt": { "label": "Terre", "help": "Terre, boue, cendre et sols d'aucun autre type." },
-  "ReliefSand": { "label": "Sable", "help": "Sable, dunes et plages." },
-  "ReliefSnow": { "label": "Neige", "help": "Neige et glace." },
-  "ReliefGrass": { "label": "Herbe", "help": "Herbe, mousse, feuilles mortes et cultures au sol." },
-  "ReliefWalls": { "label": "Murs", "help": "Murs de pierre, de brique et d'enduit, moulures, piliers, plafonds et encadrements." },
-  "ReliefRoofs": { "label": "Toits", "help": "Toits : bardeaux, tuiles et chaume." },
-  "ReliefWood": { "label": "Bois", "help": "Planches, poutres, murs et sols en bois, clôtures, caisses et tonneaux." },
-  "ReliefMetal": { "label": "Métal", "help": "Métal et fer, chaînes, tuyaux et machines." },
-  "ReliefBark": { "label": "Écorce", "help": "Troncs, branches, racines et bûches." },
-  "ReliefLeaves": { "label": "Feuillage", "help": "Feuilles, buissons, plantes et fleurs." },
-  "ReliefCreatures": { "label": "Créatures", "help": "Créatures : fourrure, cuir et écailles." },
-  "ReliefCharacters": { "label": "Personnages", "help": "Les personnages et l'armure qu'ils portent sur le corps." },
-  "ReliefArmour": { "label": "Armures", "help": "Casques, épaulières, armes et boucliers." },
-  "ReliefProps": { "label": "Objets", "help": "Objets : tissus, bannières, lampes, panneaux et tout le reste." },
+  "ReliefRoads": {
+   "label": "Routes",
+   "help": "Routes, dallages, pavés et sols pavés, dehors et dans les bâtiments."
+  },
+  "ReliefRock": {
+   "label": "Roche",
+   "help": "Roche, falaises, gravier, rochers et grottes."
+  },
+  "ReliefDirt": {
+   "label": "Terre",
+   "help": "Terre, boue, cendre et sols d'aucun autre type."
+  },
+  "ReliefSand": {
+   "label": "Sable",
+   "help": "Sable, dunes et plages."
+  },
+  "ReliefSnow": {
+   "label": "Neige",
+   "help": "Neige et glace."
+  },
+  "ReliefGrass": {
+   "label": "Herbe",
+   "help": "Herbe, mousse, feuilles mortes et cultures au sol."
+  },
+  "ReliefWalls": {
+   "label": "Murs",
+   "help": "Murs de pierre, de brique et d'enduit, moulures, piliers, plafonds et encadrements."
+  },
+  "ReliefRoofs": {
+   "label": "Toits",
+   "help": "Toits : bardeaux, tuiles et chaume."
+  },
+  "ReliefWood": {
+   "label": "Bois",
+   "help": "Planches, poutres, murs et sols en bois, clôtures, caisses et tonneaux."
+  },
+  "ReliefMetal": {
+   "label": "Métal",
+   "help": "Métal et fer, chaînes, tuyaux et machines."
+  },
+  "ReliefBark": {
+   "label": "Écorce",
+   "help": "Troncs, branches, racines et bûches."
+  },
+  "ReliefLeaves": {
+   "label": "Feuillage",
+   "help": "Feuilles, buissons, plantes et fleurs."
+  },
+  "ReliefCreatures": {
+   "label": "Créatures",
+   "help": "Créatures : fourrure, cuir et écailles."
+  },
+  "ReliefCharacters": {
+   "label": "Personnages",
+   "help": "Les personnages et l'armure qu'ils portent sur le corps."
+  },
+  "ReliefArmour": {
+   "label": "Armures",
+   "help": "Casques, épaulières, armes et boucliers."
+  },
+  "ReliefProps": {
+   "label": "Objets",
+   "help": "Objets : tissus, bannières, lampes, panneaux et tout le reste."
+  },
   "WaterReflect": {
    "label": "Reflets sur l'eau",
    "help": "L'eau reflète le ciel, les rives, les arbres et les bâtiments ; forts quand on regarde au loin sur l'eau, faibles quand on regarde dedans. 0 = désactivé."

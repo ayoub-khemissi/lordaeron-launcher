@@ -1,9 +1,10 @@
-import { Button, Chip, Spinner, Tab, Tabs } from "@heroui/react";
+import { Button, Spinner, Tab, Tabs } from "@heroui/react";
 import { ExternalLink, Megaphone, ScrollText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { PageHeader } from "../components/PageHeader";
 import { useI18n } from "../i18n";
 import { api } from "../lib/api";
 import { useLauncher } from "../lib/store";
@@ -131,56 +132,78 @@ export function NewsScreen({ target }: { target?: NewsTarget }) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-end gap-6 px-8 pb-2 pt-7">
-        <div className="flex-1">
-          <h1 className="font-heading text-3xl text-gold-gradient">{t("news.title")}</h1>
-          <p className="mt-1 text-sm text-white/50">{t("news.subtitle")}</p>
-        </div>
-      </header>
-      <div className="flex items-center gap-4 px-6">
-        <Tabs
-          aria-label={t("news.title")}
-          classNames={{ cursor: "bg-wow-gold", tabContent: "group-data-[selected=true]:text-wow-gold-light" }}
-          selectedKey={tab}
-          variant="underlined"
-          onSelectionChange={(k) => {
-            setTab(k as NewsTarget["tab"]);
-            setSelected(undefined);
-          }}
-        >
-          <Tab key="announcements" title={<span className="flex items-center gap-2"><Megaphone size={15} />{t("news.announcements")}</span>} />
-          <Tab key="changelog" title={<span className="flex items-center gap-2"><ScrollText size={15} />{t("news.changelog")}</span>} />
-        </Tabs>
-        <div className="ml-auto flex gap-1.5">
-          <Chip
-            className="cursor-pointer"
-            color={realmOnly ? "warning" : "default"}
-            size="sm"
-            variant={realmOnly ? "flat" : "bordered"}
-            onClick={() => setRealmOnly(true)}
-          >
-            {status?.feed?.realms.find((r) => r.id === realm)?.name ?? realm}
-          </Chip>
-          <Chip
-            className="cursor-pointer"
-            color={!realmOnly ? "warning" : "default"}
-            size="sm"
-            variant={!realmOnly ? "flat" : "bordered"}
-            onClick={() => setRealmOnly(false)}
-          >
-            {t("news.allRealms")}
-          </Chip>
-        </div>
-      </div>
+      <PageHeader
+        subtitle={t("news.subtitle")}
+        tabs={
+          <>
+            <Tabs
+              aria-label={t("news.title")}
+              classNames={{
+                base: "-mb-px",
+                tabList: "gap-6 p-0",
+                tab: "h-10 px-0",
+                cursor: "w-full bg-wow-gold",
+                tabContent: "text-[14px] text-white/55 group-data-[selected=true]:text-wow-gold-light",
+              }}
+              selectedKey={tab}
+              variant="underlined"
+              onSelectionChange={(k) => {
+                setTab(k as NewsTarget["tab"]);
+                setSelected(undefined);
+              }}
+            >
+              <Tab
+                key="announcements"
+                title={
+                  <span className="flex items-center gap-2">
+                    <Megaphone size={15} />
+                    {t("news.announcements")}
+                  </span>
+                }
+              />
+              <Tab
+                key="changelog"
+                title={
+                  <span className="flex items-center gap-2">
+                    <ScrollText size={15} />
+                    {t("news.changelog")}
+                  </span>
+                }
+              />
+            </Tabs>
+            <div className="mb-2 flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5" role="group">
+              {[
+                { only: true, label: status?.feed?.realms.find((r) => r.id === realm)?.name ?? realm },
+                { only: false, label: t("news.allRealms") },
+              ].map((o) => (
+                <button
+                  key={String(o.only)}
+                  aria-pressed={realmOnly === o.only}
+                  className={`h-7 rounded-md px-3 text-[12px] font-medium transition ${
+                    realmOnly === o.only ? "bg-wow-gold text-black" : "text-white/60 hover:text-white"
+                  }`}
+                  onClick={() => {
+                    setRealmOnly(o.only);
+                    setSelected(undefined);
+                  }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </>
+        }
+        title={t("news.title")}
+      />
 
       {!news ? (
         <div className="flex flex-1 items-center justify-center">
-          <Spinner color="warning" />
+          <Spinner color="primary" />
         </div>
       ) : list.length === 0 ? (
         <p className="mt-16 text-center text-sm text-white/45">{t("news.empty")}</p>
       ) : (
-        <div className="flex min-h-0 flex-1 border-t border-white/5">
+        <div className="flex min-h-0 flex-1">
           <aside className="thin-scroll w-72 shrink-0 overflow-y-auto border-r border-white/5 p-3">
             {list.map((p) => (
               <button
@@ -201,7 +224,7 @@ export function NewsScreen({ target }: { target?: NewsTarget }) {
             ))}
             <div ref={sentinel} className="flex justify-center py-3">
               {loadingMore ? (
-                <Spinner color="warning" size="sm" />
+                <Spinner color="primary" size="sm" />
               ) : more ? (
                 <Button size="sm" variant="light" onPress={loadMore}>
                   {t("news.more")}

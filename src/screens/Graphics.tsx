@@ -2,6 +2,10 @@ import {
   addToast,
   Button,
   Chip,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
   Progress as Bar,
   Input,
   Modal,
@@ -14,10 +18,11 @@ import {
   Tabs,
   useDisclosure,
 } from "@heroui/react";
-import { CircleCheck, Download, Radio, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
+import { CircleCheck, Download, History, Info, MoreHorizontal, Radio, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CompareSlider, SCENES } from "../components/CompareSlider";
+import { PageHeader, Pill } from "../components/PageHeader";
 import { PresetCard } from "../components/PresetCard";
 import { SettingRow } from "../components/SettingRow";
 import { useI18n } from "../i18n";
@@ -43,57 +48,100 @@ export function GraphicsScreen() {
     if (settings) writeSettings({ Enable: value ? "1" : "0" });
   };
 
+  const rollback = async () => {
+    try {
+      const version = await api.rollbackLumenveil();
+
+      await refresh(false);
+      await loadSettings();
+      if (version) addToast({ title: t("settings.rolledBack", { version }), color: "success" });
+    } catch (e) {
+      addToast({ title: String(e), color: "danger" });
+    }
+  };
+
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-start gap-6 px-8 pb-4 pt-7">
-        <div className="min-w-0 flex-1">
-          <h1 className="font-heading text-3xl text-gold-gradient">{t("graphics.title")}</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-white/55">{t("graphics.subtitle")}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {lv.installed && (
-              <Chip size="sm" startContent={<CircleCheck className="ml-1" size={13} />} variant="flat">
-                {t("graphics.version", { version: lv.installed })}
-              </Chip>
-            )}
-            {on && pendingInstall && (
-              <Chip color="warning" size="sm" startContent={<Download className="ml-1" size={13} />} variant="flat">
-                {lv.installed
-                  ? t("graphics.updateReady", { version: pendingInstall.to ?? "" })
-                  : t("graphics.notInstalled", { size: bytes(pendingInstall.size) })}
-              </Chip>
-            )}
-            {on && settings && (
-              <Chip
-                color={status.running ? "success" : "default"}
-                size="sm"
-                startContent={<Radio className="ml-1" size={13} />}
-                variant="flat"
+      <PageHeader
+        actions={
+          lv.installed ? (
+            <>
+              <Dropdown placement="bottom-end">
+                <DropdownTrigger>
+                  <Button isIconOnly aria-label={t("graphics.more")} isDisabled={busy || status.running} size="sm" variant="light">
+                    <MoreHorizontal size={18} />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label={t("graphics.more")}>
+                  <DropdownItem key="rollback" startContent={<History size={15} />} onPress={rollback}>
+                    {t("settings.rollback")}
+                  </DropdownItem>
+                  <DropdownItem
+                    key="uninstall"
+                    className="text-danger"
+                    color="danger"
+                    startContent={<Trash2 size={15} />}
+                    onPress={uninstall.onOpen}
+                  >
+                    {t("settings.uninstall")}
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+              <Switch
+                aria-label={t("graphics.title")}
+                classNames={{ label: "text-[13px] font-medium text-white/80" }}
+                color="primary"
+                isSelected={on}
+                onValueChange={toggle}
               >
+                {on ? t("graphics.on") : t("graphics.off")}
+              </Switch>
+            </>
+          ) : null
+        }
+        meta={
+          <>
+            {lv.installed && <Pill icon={<CircleCheck />}>{t("graphics.version", { version: lv.installed })}</Pill>}
+            {on && lv.installed && settings && (
+              <Pill icon={<Radio />} tone={status.running ? "success" : "neutral"}>
                 {status.running ? t("graphics.liveRunning") : t("graphics.live")}
-              </Chip>
+              </Pill>
             )}
-          </div>
-        </div>
-        {lv.installed ? (
-          <div className="flex items-center gap-3">
-            <Button
-              color="danger"
-              isDisabled={busy || status.running}
-              size="sm"
-              startContent={<Trash2 size={14} />}
-              variant="light"
-              onPress={uninstall.onOpen}
-            >
-              {t("graphics.uninstall")}
-            </Button>
-            <Switch aria-label={t("graphics.title")} color="warning" isSelected={on} size="lg" onValueChange={toggle} />
-          </div>
-        ) : null}
-      </header>
+            {on && lv.installed && pendingInstall && (
+              <Pill icon={<Download />} tone="gold">
+                {t("graphics.updateReady", { version: pendingInstall.to ?? "" })}
+              </Pill>
+            )}
+          </>
+        }
+        subtitle={t("graphics.subtitle")}
+        tabs={
+          <Tabs
+            aria-label={t("graphics.title")}
+            classNames={{
+              base: "-mb-px",
+              tabList: "gap-6 p-0",
+              tab: "h-10 px-0",
+              cursor: "w-full bg-wow-gold",
+              tabContent: "text-[14px] text-white/55 group-data-[selected=true]:text-wow-gold-light",
+            }}
+            selectedKey={tab}
+            variant="underlined"
+            onSelectionChange={(k) => setTab(String(k))}
+          >
+            <Tab key="presets" title={t("graphics.tab.presets")} />
+            <Tab key="all" title={t("graphics.tab.all")} />
+            <Tab key="compare" title={t("graphics.tab.compare")} />
+          </Tabs>
+        }
+        title={t("graphics.title")}
+      />
 
       {!lv.installed && (
-        <div className="mx-8 mb-4 flex items-center gap-5 rounded-2xl border border-wow-gold/40 bg-wow-gold/[0.07] p-5">
-          <Sparkles className="shrink-0 text-wow-gold" size={28} />
+        <div className="mx-8 mt-5 flex items-center gap-5 rounded-2xl border border-wow-gold/40 bg-wow-gold/[0.07] p-5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-wow-gold/15 text-wow-gold">
+            <Sparkles size={24} />
+          </span>
           <div className="min-w-0 flex-1">
             {busy && progress && progress.step !== "done" ? (
               <>
@@ -106,22 +154,30 @@ export function GraphicsScreen() {
                 />
               </>
             ) : (
-              <p className="text-[13px] text-white/60">
-                {error ? <span className="text-danger-400">{error}</span> : t("graphics.installHint", { size: bytes(lv.available?.size ?? 0) })}
-              </p>
+              <>
+                <p className="text-[15px] font-medium text-white/90">{t("graphics.install")}</p>
+                <p className="mt-0.5 text-[13px] text-white/55">
+                  {error ? <span className="text-danger-400">{error}</span> : t("graphics.installHint", { size: bytes(lv.available?.size ?? 0) })}
+                </p>
+              </>
             )}
           </div>
-          <Button
-            className="play-button shrink-0 font-medium"
-            isDisabled={!status.game?.ok || status.running || !lv.available}
-            isLoading={busy}
-            size="lg"
-            onPress={async () => {
+          <button
+            className="play-button h-11 shrink-0 rounded-xl px-6 text-[14px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={busy || !status.game?.ok || status.running || !lv.available}
+            onClick={async () => {
               if (await install()) addToast({ title: t("step.done"), color: "success" });
             }}
           >
-            {t("graphics.install")}
-          </Button>
+            {t("graphics.installButton")}
+          </button>
+        </div>
+      )}
+
+      {!on && lv.installed && (
+        <div className="mx-8 mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-[13px] text-white/60">
+          <Info className="shrink-0 text-white/40" size={16} />
+          {t("graphics.offHint")}
         </div>
       )}
 
@@ -155,26 +211,7 @@ export function GraphicsScreen() {
         </ModalContent>
       </Modal>
 
-      {!on && lv.installed && (
-        <div className="mx-8 mb-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
-          {t("graphics.offHint")}
-        </div>
-      )}
-
-      <Tabs
-        aria-label={t("graphics.title")}
-        className="px-6"
-        classNames={{ cursor: "bg-wow-gold", tabContent: "group-data-[selected=true]:text-wow-gold-light" }}
-        selectedKey={tab}
-        variant="underlined"
-        onSelectionChange={(k) => setTab(String(k))}
-      >
-        <Tab key="presets" title={t("graphics.tab.presets")} />
-        <Tab key="all" title={t("graphics.tab.all")} />
-        <Tab key="compare" title={t("graphics.tab.compare")} />
-      </Tabs>
-
-      <div className={`relative min-h-0 flex-1 ${on ? "" : "opacity-60"}`}>
+      <div className={`relative min-h-0 flex-1 transition-opacity ${on ? "" : "opacity-60"}`}>
         {tab === "compare" ? (
           <Compare />
         ) : !settings ? (
@@ -235,7 +272,7 @@ function PresetsTab({ file, onChange }: { file: SettingsFile; onChange: (v: Reco
     <div className="thin-scroll h-full overflow-y-auto px-8 pb-8 pt-5">
       <div className="mb-3 flex items-center gap-3">
         {!active && (
-          <Chip color="warning" size="sm" variant="dot">
+          <Chip color="primary" size="sm" variant="dot">
             {t("graphics.custom")}
           </Chip>
         )}
@@ -320,12 +357,12 @@ function AllSettings({ file, onChange }: { file: SettingsFile; onChange: (v: Rec
 
   return (
     <div className="flex h-full">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-white/5 py-4 pl-6 pr-3">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-white/5 py-4 pl-6 pr-3">
         <Input
           aria-label={t("graphics.search")}
           classNames={{ inputWrapper: "bg-white/5" }}
           isClearable
-          placeholder={t("graphics.search")}
+          placeholder={t("graphics.searchShort")}
           size="sm"
           startContent={<Search className="text-white/40" size={15} />}
           value={query}
@@ -339,7 +376,7 @@ function AllSettings({ file, onChange }: { file: SettingsFile; onChange: (v: Rec
             return (
               <button
                 key={s.id}
-                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] transition ${
+                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] leading-snug transition ${
                   active ? "bg-wow-gold/12 text-wow-gold-light" : "text-white/65 hover:bg-white/5 hover:text-white"
                 }`}
                 onClick={() => {
@@ -347,7 +384,7 @@ function AllSettings({ file, onChange }: { file: SettingsFile; onChange: (v: Rec
                   setSectionId(s.id);
                 }}
               >
-                <span className="flex-1 truncate">{words.section(s.id)}</span>
+                <span className="flex-1">{words.section(s.id)}</span>
                 {count > 0 && (
                   <span className="rounded-full bg-wow-gold/20 px-1.5 text-[10px] tabular-nums text-wow-gold-light">{count}</span>
                 )}
@@ -356,7 +393,7 @@ function AllSettings({ file, onChange }: { file: SettingsFile; onChange: (v: Rec
           })}
         </div>
         <div className="mt-2 border-t border-white/5 pt-3">
-          <Switch color="warning" isSelected={expert} size="sm" onValueChange={setExpert}>
+          <Switch color="primary" isSelected={expert} size="sm" onValueChange={setExpert}>
             <span className="text-[13px]">{t("graphics.expert")}</span>
           </Switch>
           <p className="mt-1 pl-1 text-[11px] text-white/35">{t("graphics.expertHint")}</p>

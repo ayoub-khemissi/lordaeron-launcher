@@ -49,7 +49,7 @@ function Shell() {
         <TitleBar />
         {!status || onboarding === null ? (
           <div className="flex flex-1 items-center justify-center">
-            <Spinner color="warning" />
+            <Spinner color="primary" />
           </div>
         ) : onboarding ? (
           <Onboarding onDone={() => setOnboarding(false)} />
@@ -100,7 +100,7 @@ function SelfUpdate({ version }: { version: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="glass flex items-center gap-4 rounded-2xl px-8 py-6">
-        <Spinner color="warning" size="sm" />
+        <Spinner color="primary" size="sm" />
         <SelfUpdateText version={version} />
       </div>
     </div>
