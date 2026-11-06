@@ -1,7 +1,7 @@
 import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip, useDisclosure } from "@heroui/react";
 import { AlertTriangle, CheckCircle2, ChevronUp, Info, Loader2, UserRound, X, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { SignInModal } from "../components/SignIn";
 import type { Screen } from "../components/Sidebar";
@@ -32,17 +32,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
 
   return (
     <div className="relative h-full overflow-hidden">
-      {realm && (
-        <motion.img
-          key={realm.id}
-          alt=""
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute inset-0 h-full w-full object-cover"
-          initial={{ opacity: 0, scale: 1.04 }}
-          src={realm.image.startsWith("http") ? realm.image : `/${realm.image}`}
-          transition={{ duration: 0.6 }}
-        />
-      )}
+      {realm && <RealmBackground realm={realm} />}
       <div className="absolute inset-0 bg-gradient-to-r from-wow-darker via-wow-darker/70 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-wow-darker via-transparent to-wow-darker/40" />
 
@@ -449,5 +439,62 @@ function NoticeBanner() {
         <X size={14} />
       </button>
     </div>
+  );
+}
+
+// one picture per realm for this start of the launcher (another one next time), from the realm's list on lordaeron.eu
+const drawn: Record<string, string> = {};
+
+function backgroundOf(realm: RealmDef): string {
+  const local = realm.image.startsWith("http") ? realm.image : `/${realm.image}`;
+  const list = (realm.backgrounds ?? []).filter((u) => u.startsWith("https://lordaeron.eu/"));
+
+  if (!list.length) return local;
+  if (!drawn[realm.id]) drawn[realm.id] = list[Math.floor(Math.random() * list.length)];
+
+  return drawn[realm.id];
+}
+
+// the bundled picture at once, then the drawn one fading in over it once it has loaded (never an empty screen)
+function RealmBackground({ realm }: { realm: RealmDef }) {
+  const local = realm.image.startsWith("http") ? realm.image : `/${realm.image}`;
+  const wanted = backgroundOf(realm);
+  const [ready, setReady] = useState<string | null>(wanted === local ? wanted : null);
+
+  useEffect(() => {
+    if (wanted === local) return;
+    const img = new Image();
+
+    img.onload = () => setReady(wanted);
+    img.src = wanted;
+
+    return () => {
+      img.onload = null;
+    };
+  }, [wanted, local]);
+
+  return (
+    <>
+      <motion.img
+        key={`${realm.id}-local`}
+        alt=""
+        animate={{ opacity: ready && ready !== local ? 0 : 1, scale: 1 }}
+        className="absolute inset-0 h-full w-full object-cover"
+        initial={{ opacity: 0, scale: 1.04 }}
+        src={local}
+        transition={{ duration: 0.6 }}
+      />
+      {ready && ready !== local && (
+        <motion.img
+          key={ready}
+          alt=""
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute inset-0 h-full w-full object-cover"
+          initial={{ opacity: 0, scale: 1.03 }}
+          src={ready}
+          transition={{ duration: 0.9 }}
+        />
+      )}
+    </>
   );
 }

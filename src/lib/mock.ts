@@ -9,7 +9,7 @@ import schema from "../assets/schema.json";
 const firstRun = new URLSearchParams(location.search).has("first");
 const prefs: Prefs = {
   gameDir: firstRun ? null : "C:\\Games\\World of Warcraft 3.3.5a",
-  realm: "lordaeron",
+  realm: new URLSearchParams(location.search).get("realm") ?? "lordaeron",
   channel: "stable",
   language: new URLSearchParams(location.search).get("lang"),
   afterPlay: "minimize",
@@ -18,7 +18,7 @@ const prefs: Prefs = {
   downloadLimit: 0,
   autoUpdate: true,
   accountName: null,
-  signedInAs: new URLSearchParams(location.search).has("signed") ? "ARTHAS" : null,
+  signedInAs: new URLSearchParams(location.search).has("signed") ? "THRALL" : null,
   autoLogin: true,
   security: null,
 };
@@ -28,7 +28,7 @@ const values: Record<string, string> = Object.fromEntries(
     typeof s.default === "boolean" ? (s.default ? "1" : "0") : String(s.default),
   ]),
 );
-let installed: string | null = firstRun ? null : "0.6.2";
+let installed: string | null = firstRun ? null : "0.7.1";
 let patchesDone = false;
 
 const game = (path: string): GameInfo => ({
@@ -76,7 +76,7 @@ function status(): Status {
       enabled: values.Enable !== "0",
       held: false,
       available: {
-        version: "0.7.0",
+        version: "0.7.1",
         date: "2026-11-06 18:00",
         url: "",
         size: 1_400_000,
@@ -99,7 +99,7 @@ function status(): Status {
       { name: "patch-Z.MPQ", realms: ["Lordaeron"], state: prefs.realm === "lordaeron" ? "active" : "aside", version: "2026-10-19 06:04", size: 191_584 },
     ],
     running: false,
-    launcherVersion: "0.1.0",
+    launcherVersion: "0.1.20",
   };
 }
 

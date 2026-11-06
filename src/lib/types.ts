@@ -36,6 +36,7 @@ export interface RealmDef {
   minSecurity?: number;
   managePatches?: boolean;
   badge?: string | null;
+  backgrounds?: string[]; // the Play tab's pictures, one drawn at each start
 }
 
 export interface Notice {

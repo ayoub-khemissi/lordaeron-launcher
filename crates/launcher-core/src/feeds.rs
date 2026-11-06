@@ -87,6 +87,9 @@ pub struct RealmDef {
     /// a word on its card: "Lab"
     #[serde(default)]
     pub badge: Option<String>,
+    /// the Play tab's pictures (https://lordaeron.eu/...): one drawn at each start of the launcher
+    #[serde(default)]
+    pub backgrounds: Vec<String>,
 }
 
 fn yes() -> bool {
