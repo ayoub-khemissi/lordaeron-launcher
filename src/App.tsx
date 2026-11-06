@@ -10,6 +10,7 @@ import { LauncherProvider, useLauncher } from "./lib/store";
 import { GraphicsScreen } from "./screens/Graphics";
 import { GuideScreen } from "./screens/Guide";
 import { HomeScreen } from "./screens/Home";
+import { NewsScreen, type NewsTarget } from "./screens/News";
 import { Onboarding } from "./screens/Onboarding";
 import { SettingsScreen } from "./screens/Settings";
 
@@ -19,6 +20,7 @@ function Shell() {
   const [screen, setScreen] = useState<Screen>(
     (!inApp && (new URLSearchParams(location.search).get("screen") as Screen)) || "play",
   );
+  const [newsTarget, setNewsTarget] = useState<NewsTarget | undefined>();
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [selfUpdate, setSelfUpdate] = useState<string | null>(null);
 
@@ -53,7 +55,13 @@ function Shell() {
           <Onboarding onDone={() => setOnboarding(false)} />
         ) : (
           <div className="flex min-h-0 flex-1">
-            <Sidebar screen={screen} onScreen={setScreen} />
+            <Sidebar
+              screen={screen}
+              onScreen={(s) => {
+                setNewsTarget(undefined);
+                setScreen(s);
+              }}
+            />
             <div className="relative min-w-0 flex-1">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -64,7 +72,16 @@ function Shell() {
                   initial={{ opacity: 0, y: 6 }}
                   transition={{ duration: 0.16 }}
                 >
-                  {screen === "play" && <HomeScreen onScreen={setScreen} />}
+                  {screen === "play" && (
+                    <HomeScreen
+                      onNews={(target) => {
+                        setNewsTarget(target);
+                        setScreen("news");
+                      }}
+                      onScreen={setScreen}
+                    />
+                  )}
+                  {screen === "news" && <NewsScreen target={newsTarget} />}
                   {screen === "graphics" && <GraphicsScreen />}
                   {screen === "guide" && <GuideScreen />}
                   {screen === "settings" && <SettingsScreen onGameFolder={() => setOnboarding(true)} />}

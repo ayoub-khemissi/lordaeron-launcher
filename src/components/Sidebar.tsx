@@ -1,12 +1,13 @@
-import { BookOpen, Play, Settings, Sparkles } from "lucide-react";
+import { BookOpen, Newspaper, Play, Settings, Sparkles } from "lucide-react";
 
 import { useI18n } from "../i18n";
 import { useLauncher } from "../lib/store";
 
-export type Screen = "play" | "graphics" | "guide" | "settings";
+export type Screen = "play" | "news" | "graphics" | "guide" | "settings";
 
 const ITEMS = [
   { id: "play", icon: Play, label: "nav.play" },
+  { id: "news", icon: Newspaper, label: "nav.news" },
   { id: "graphics", icon: Sparkles, label: "nav.graphics" },
   { id: "guide", icon: BookOpen, label: "nav.guide" },
   { id: "settings", icon: Settings, label: "nav.settings" },

@@ -170,6 +170,7 @@ export interface NewsPost {
 
 export interface News {
   updated: string;
+  pages?: { announcements: number; changelog: number }; // pages of 10, the first being here
   announcements: NewsPost[];
   changelog: NewsPost[];
 }

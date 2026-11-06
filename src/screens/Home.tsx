@@ -3,14 +3,15 @@ import { AlertTriangle, CheckCircle2, CloudOff, FolderOpen, Gamepad2, RefreshCw,
 import { motion } from "framer-motion";
 
 import type { Screen } from "../components/Sidebar";
+import { formatDate, RealmBadge, type NewsTarget } from "./News";
 import { useI18n } from "../i18n";
 import { currentPreset, valuesOf } from "../lib/settings";
 import { useLauncher } from "../lib/store";
 import type { PendingItem, Progress, RealmDef } from "../lib/types";
 
-export function HomeScreen({ onScreen }: { onScreen: (s: Screen) => void }) {
+export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void; onNews: (t: NewsTarget) => void }) {
   const { t, language } = useI18n();
-  const { status, busy, progress, error, play, setPrefs, settings, refresh } = useLauncher();
+  const { status, busy, progress, error, play, setPrefs, settings, refresh, news } = useLauncher();
 
   if (!status) return null;
   const realms = (status.feed?.realms ?? []).filter((r) => !r.hidden || r.id === status.prefs.realm);
@@ -40,6 +41,8 @@ export function HomeScreen({ onScreen }: { onScreen: (s: Screen) => void }) {
       <div className="absolute inset-0 bg-gradient-to-t from-wow-darker via-transparent to-wow-darker/40" />
 
       <div className="relative flex h-full flex-col px-10 pb-7 pt-10">
+        <div className="flex gap-8">
+        <div className="min-w-0 flex-1">
         <div className="max-w-xl">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-white/50">{t("home.realm")}</p>
           <h1
@@ -65,6 +68,9 @@ export function HomeScreen({ onScreen }: { onScreen: (s: Screen) => void }) {
             ))}
           </div>
         )}
+        </div>
+        <LatestNews realm={status.prefs.realm} news={news} onNews={onNews} />
+        </div>
 
         <div className="mt-auto">
           {!status.game?.ok ? (
@@ -245,6 +251,51 @@ function Line({ icon, text, sub }: { icon: React.ReactNode; text: string; sub?: 
         <p className="text-[15px] text-white/90">{text}</p>
         {sub && <p className="truncate text-xs text-white/45">{sub}</p>}
       </div>
+    </div>
+  );
+}
+
+function LatestNews({ news, realm, onNews }: { news: ReturnType<typeof useLauncher>["news"]; realm: string; onNews: (t: NewsTarget) => void }) {
+  const { t, language } = useI18n();
+
+  if (!news) return null;
+  const forRealm = (p: { realm: string | null }) => !p.realm || p.realm === realm;
+  const announcement = news.announcements.find((p) => forRealm(p) && p.title);
+  const changelog = news.changelog.find(forRealm);
+
+  if (!announcement && !changelog) return null;
+
+  return (
+    <div className="hidden w-[330px] shrink-0 flex-col gap-3 lg:flex">
+      {announcement && (
+        <button
+          className="glass group overflow-hidden rounded-2xl text-left transition hover:border-wow-gold/40"
+          onClick={() => onNews({ tab: "announcements", id: announcement.id })}
+        >
+          {announcement.images[0] && (
+            <div className="h-32 overflow-hidden">
+              <img alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={announcement.images[0].url} />
+            </div>
+          )}
+          <div className="p-4">
+            <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-wow-gold/80">
+              {t("home.latestAnnouncement")} <RealmBadge realm={announcement.realm} />
+            </p>
+            <p className="mt-1.5 line-clamp-2 font-heading text-[17px] leading-snug text-white/95">{announcement.title}</p>
+            <p className="mt-1 text-[11px] text-white/40">{formatDate(announcement.date, language)}</p>
+          </div>
+        </button>
+      )}
+      {changelog && (
+        <button
+          className="glass rounded-2xl p-4 text-left transition hover:border-wow-gold/40"
+          onClick={() => onNews({ tab: "changelog", id: changelog.id })}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-wow-gold/80">{t("home.latestChangelog")}</p>
+          <p className="mt-1.5 line-clamp-2 text-[13.5px] text-white/90">{changelog.title || formatDate(changelog.date, language)}</p>
+          <p className="mt-1 text-[11px] text-white/40">{formatDate(changelog.date, language)}</p>
+        </button>
+      )}
     </div>
   );
 }

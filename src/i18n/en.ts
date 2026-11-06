@@ -2,6 +2,7 @@
 const en = {
   "app.name": "Lordaeron",
   "nav.play": "Play",
+  "nav.news": "News",
   "nav.graphics": "Graphics",
   "nav.guide": "Guide",
   "nav.settings": "Settings",
@@ -24,6 +25,8 @@ const en = {
   "home.news": "News",
   "home.error": "Something went wrong",
   "home.retry": "Try again",
+  "home.latestAnnouncement": "Latest announcement",
+  "home.latestChangelog": "Latest changelog",
   "home.launcherUpdate": "Updating the launcher to version {version}…",
 
   "step.patch": "Downloading {name}",
@@ -34,6 +37,17 @@ const en = {
   "step.realmlist": "Setting the realm list",
   "step.launch": "Starting the game…",
   "step.done": "Up to date",
+
+  "news.title": "News",
+  "news.subtitle": "The announcements and patch notes of our Discord, as they are posted.",
+  "news.announcements": "Announcements",
+  "news.changelog": "Changelog",
+  "news.allRealms": "All realms",
+  "news.more": "Show more",
+  "news.empty": "Nothing posted yet.",
+  "news.untitled": "Post",
+  "news.onDiscord": "Open on Discord",
+  "news.fromDiscord": "Posted on the Lordaeron Discord.",
 
   "graphics.title": "Enhanced graphics",
   "graphics.subtitle": "Volumetric fog, sun shafts, lamps that light the world, water reflections, rain and shadows, by Lumenveil.",
@@ -71,6 +85,10 @@ const en = {
   "graphics.before": "Without",
   "graphics.after": "With Lumenveil",
   "graphics.saved": "Saved",
+  "graphics.install": "Install the enhanced graphics",
+  "graphics.installHint": "Lumenveil, {size}. Nothing in the game changes but its look; you can remove it at any time.",
+  "graphics.installing": "Installing…",
+  "graphics.uninstall": "Uninstall",
 
   "preset.performance": "Performance",
   "preset.performance.help": "For modest PCs and laptops: lighter fog, fewer lamps, no lamp shadows, the game's own view distance.",
@@ -98,8 +116,9 @@ const en = {
   "guide.tip.slow": "The game is slower? Pick the Performance preset, or lower “Fog quality” and “Lamps”.",
   "guide.tip.off": "To play without it, turn Enhanced graphics off in the Graphics tab: nothing else changes.",
   "guide.tip.screens": "Screenshots (Print Screen) include the effects, as in the game.",
-  "guide.credits": "Lumenveil is free software (GNU GPL v2) by the Lumenveil authors, built on CoAVolFog. Lordaeron's version adds fixes for the server's world.",
-  "guide.source": "Source code",
+  "guide.credits": "Lumenveil is free software (GNU GPL v2) made by the Lumenveil authors, itself built on CoAVolFog. Lordaeron plays with its own version, a fork of the official project with fixes for the server's world.",
+  "guide.official": "Official project",
+  "guide.source": "Lordaeron's version",
 
   "settings.title": "Settings",
   "settings.game": "Game folder",

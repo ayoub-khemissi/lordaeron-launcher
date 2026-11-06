@@ -3,6 +3,7 @@ import type { Messages } from "./en";
 const fr: Partial<Messages> = {
   "app.name": "Lordaeron",
   "nav.play": "Jouer",
+  "nav.news": "Nouveautés",
   "nav.graphics": "Graphismes",
   "nav.guide": "Guide",
   "nav.settings": "Paramètres",
@@ -25,6 +26,8 @@ const fr: Partial<Messages> = {
   "home.news": "Actualités",
   "home.error": "Un problème est survenu",
   "home.retry": "Réessayer",
+  "home.latestAnnouncement": "Dernière annonce",
+  "home.latestChangelog": "Dernier changelog",
   "home.launcherUpdate": "Mise à jour du launcher vers la version {version}…",
 
   "step.patch": "Téléchargement de {name}",
@@ -35,6 +38,17 @@ const fr: Partial<Messages> = {
   "step.realmlist": "Réglage de la liste des royaumes",
   "step.launch": "Lancement du jeu…",
   "step.done": "À jour",
+
+  "news.title": "Nouveautés",
+  "news.subtitle": "Les annonces et notes de mise à jour de notre Discord, telles qu'elles sont publiées.",
+  "news.announcements": "Annonces",
+  "news.changelog": "Changelog",
+  "news.allRealms": "Tous les royaumes",
+  "news.more": "Voir plus",
+  "news.empty": "Rien de publié pour l'instant.",
+  "news.untitled": "Publication",
+  "news.onDiscord": "Ouvrir sur Discord",
+  "news.fromDiscord": "Publié sur le Discord de Lordaeron.",
 
   "graphics.title": "Graphismes améliorés",
   "graphics.subtitle": "Brouillard volumétrique, rayons de soleil, lampes qui éclairent le monde, reflets sur l'eau, pluie et ombres, par Lumenveil.",
@@ -72,6 +86,10 @@ const fr: Partial<Messages> = {
   "graphics.before": "Sans",
   "graphics.after": "Avec Lumenveil",
   "graphics.saved": "Enregistré",
+  "graphics.install": "Installer les graphismes améliorés",
+  "graphics.installHint": "Lumenveil, {size}. Seul l'aspect du jeu change ; vous pouvez le retirer à tout moment.",
+  "graphics.installing": "Installation…",
+  "graphics.uninstall": "Désinstaller",
 
   "preset.performance": "Performance",
   "preset.performance.help": "Pour les PC modestes et portables : brouillard allégé, moins de lampes, pas d'ombres des lampes, distance de vue du jeu.",
@@ -99,8 +117,9 @@ const fr: Partial<Messages> = {
   "guide.tip.slow": "Le jeu ralentit ? Choisissez le préréglage Performance, ou baissez « Qualité du brouillard » et « Lampes ».",
   "guide.tip.off": "Pour jouer sans, désactivez les graphismes améliorés dans l'onglet Graphismes : rien d'autre ne change.",
   "guide.tip.screens": "Les captures d'écran (Impr. écran) montrent les effets, comme en jeu.",
-  "guide.credits": "Lumenveil est un logiciel libre (GNU GPL v2) des auteurs de Lumenveil, construit sur CoAVolFog. La version de Lordaeron ajoute des corrections pour le monde du serveur.",
-  "guide.source": "Code source",
+  "guide.credits": "Lumenveil est un logiciel libre (GNU GPL v2) créé par les auteurs de Lumenveil, lui-même construit sur CoAVolFog. Lordaeron utilise sa propre version, un fork du projet officiel avec des corrections pour le monde du serveur.",
+  "guide.official": "Projet officiel",
+  "guide.source": "Version de Lordaeron",
 
   "settings.title": "Paramètres",
   "settings.game": "Dossier du jeu",

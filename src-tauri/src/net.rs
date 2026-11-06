@@ -10,6 +10,7 @@ use tokio::io::AsyncWriteExt;
 
 pub const LAUNCHER_FEED: &str = "https://lordaeron.eu/patches/launcher/launcher.json";
 pub const NEWS_FEED: &str = "https://lordaeron.eu/patches/launcher/news.json";
+pub const NEWS_PAGES: &str = "https://lordaeron.eu/patches/launcher/";
 
 fn client(timeout: Duration) -> Result<reqwest::Client> {
     Ok(reqwest::Client::builder()

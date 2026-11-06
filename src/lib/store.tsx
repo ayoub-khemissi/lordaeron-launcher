@@ -2,7 +2,7 @@ import { addToast } from "@heroui/react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { api, closeWindow, onGame, onProgress } from "./api";
-import type { Prefs, Progress, SettingsFile, Status } from "./types";
+import type { News, Prefs, Progress, SettingsFile, Status } from "./types";
 
 interface Launcher {
   status: Status | null;
@@ -10,9 +10,12 @@ interface Launcher {
   progress: Progress | null;
   busy: boolean;
   settings: SettingsFile | null;
+  news: News | null;
+  loadNews: () => Promise<void>;
   refresh: (remote?: boolean) => Promise<Status | null>;
   setPrefs: (prefs: Partial<Prefs>) => Promise<void>;
   play: (launch?: boolean) => Promise<boolean>;
+  install: () => Promise<boolean>;
   loadSettings: () => Promise<void>;
   writeSettings: (values: Record<string, string>) => void;
 }
@@ -27,6 +30,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState<SettingsFile | null>(null);
+  const [news, setNews] = useState<News | null>(null);
   const busyRef = useRef(false);
   const pendingWrites = useRef<Record<string, string>>({});
   const writeTimer = useRef<number | undefined>(undefined);
@@ -54,14 +58,30 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const play = useCallback(
-    async (launch = true) => {
+  const loadNews = useCallback(async () => {
+    try {
+      setNews(await api.news());
+    } catch {
+      setNews((current) => current ?? { updated: "", announcements: [], changelog: [] });
+    }
+  }, []);
+
+  // Discord's news, read again every five minutes while the launcher is open
+  useEffect(() => {
+    loadNews();
+    const timer = window.setInterval(loadNews, 5 * 60 * 1000);
+
+    return () => window.clearInterval(timer);
+  }, [loadNews]);
+
+  const run = useCallback(
+    async (launch: boolean, action: () => Promise<void>) => {
       if (busyRef.current) return false;
       busyRef.current = true;
       setBusy(true);
       setError(null);
       try {
-        await api.play(launch);
+        await action();
         const s = await refresh(false);
 
         await loadSettings();
@@ -82,6 +102,8 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
     },
     [refresh, loadSettings],
   );
+  const play = useCallback((launch = true) => run(launch, () => api.play(launch)), [run]);
+  const install = useCallback(() => run(false, () => api.installLumenveil()), [run]);
 
   const setPrefs = useCallback(async (prefs: Partial<Prefs>) => {
     try {
@@ -145,7 +167,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
   return (
     <Context.Provider
-      value={{ status, error, progress, busy, settings, refresh, setPrefs, play, loadSettings, writeSettings }}
+      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, install, loadSettings, writeSettings }}
     >
       {children}
     </Context.Provider>

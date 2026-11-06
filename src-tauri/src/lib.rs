@@ -40,6 +40,7 @@ pub fn run() {
             commands::uninstall_lumenveil,
             commands::install_lumenveil,
             commands::news,
+            commands::news_page,
             commands::open,
         ])
         .run(tauri::generate_context!())

@@ -3,3 +3,5 @@ dist/
 target/
 src-tauri/gen/
 *.log
+public/mock-news.json
+public/mock-img/

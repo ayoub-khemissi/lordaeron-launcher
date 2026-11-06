@@ -60,12 +60,20 @@ export function GuideScreen() {
 
       <div className="mt-10 flex items-start gap-4 rounded-2xl border border-white/8 bg-white/[0.02] p-5 text-[12.5px] leading-relaxed text-white/45">
         <p className="flex-1">{t("guide.credits")}</p>
-        <button
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
-          onClick={() => api.open("url", status?.lumenveil.available?.source || "https://github.com/ayoub-khemissi/Lumenveil")}
-        >
-          <Code2 size={14} /> {t("guide.source")}
-        </button>
+        <div className="flex shrink-0 flex-col gap-2">
+          <button
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
+            onClick={() => api.open("url", "https://github.com/lumenveil/Lumenveil")}
+          >
+            <Code2 size={14} /> {t("guide.official")}
+          </button>
+          <button
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-white/70 transition hover:border-wow-gold/50 hover:text-wow-gold-light"
+            onClick={() => api.open("url", status?.lumenveil.available?.source || "https://github.com/ayoub-khemissi/Lumenveil")}
+          >
+            <Code2 size={14} /> {t("guide.source")}
+          </button>
+        </div>
       </div>
     </div>
   );

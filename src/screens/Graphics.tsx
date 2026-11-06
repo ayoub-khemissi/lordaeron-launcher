@@ -1,6 +1,8 @@
 import {
+  addToast,
   Button,
   Chip,
+  Progress as Bar,
   Input,
   Modal,
   ModalBody,
@@ -12,7 +14,7 @@ import {
   Tabs,
   useDisclosure,
 } from "@heroui/react";
-import { CircleCheck, Download, Radio, RotateCcw, Search } from "lucide-react";
+import { CircleCheck, Download, Radio, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CompareSlider, SCENES } from "../components/CompareSlider";
@@ -20,13 +22,15 @@ import { PresetCard } from "../components/PresetCard";
 import { SettingRow } from "../components/SettingRow";
 import { useI18n } from "../i18n";
 import { changedKeys, currentPreset, presetChanges, serialize, valuesOf } from "../lib/settings";
+import { api } from "../lib/api";
 import { useLauncher } from "../lib/store";
 import type { SettingsFile } from "../lib/types";
 import { useSettingWords } from "../lib/words";
 
 export function GraphicsScreen() {
   const { t, bytes } = useI18n();
-  const { status, settings, setPrefs, writeSettings } = useLauncher();
+  const { status, settings, setPrefs, writeSettings, install, busy, progress, error, refresh, loadSettings } = useLauncher();
+  const uninstall = useDisclosure();
   const [tab, setTab] = useState(new URLSearchParams(location.search).get("tab") ?? "presets");
 
   if (!status) return null;
@@ -70,10 +74,88 @@ export function GraphicsScreen() {
             )}
           </div>
         </div>
-        <Switch aria-label={t("graphics.title")} color="warning" isSelected={on} size="lg" onValueChange={toggle} />
+        {lv.installed ? (
+          <div className="flex items-center gap-3">
+            <Button
+              color="danger"
+              isDisabled={busy || status.running}
+              size="sm"
+              startContent={<Trash2 size={14} />}
+              variant="light"
+              onPress={uninstall.onOpen}
+            >
+              {t("graphics.uninstall")}
+            </Button>
+            <Switch aria-label={t("graphics.title")} color="warning" isSelected={on} size="lg" onValueChange={toggle} />
+          </div>
+        ) : null}
       </header>
 
-      {!on && (
+      {!lv.installed && (
+        <div className="mx-8 mb-4 flex items-center gap-5 rounded-2xl border border-wow-gold/40 bg-wow-gold/[0.07] p-5">
+          <Sparkles className="shrink-0 text-wow-gold" size={28} />
+          <div className="min-w-0 flex-1">
+            {busy && progress && progress.step !== "done" ? (
+              <>
+                <p className="mb-2 text-sm text-white/80">{t("graphics.installing")}</p>
+                <Bar
+                  aria-label={t("graphics.installing")}
+                  classNames={{ indicator: "bg-gradient-to-r from-wow-gold-dark via-wow-gold to-wow-gold-light", track: "bg-white/10" }}
+                  size="sm"
+                  value={progress.total > 0 ? (progress.done / progress.total) * 100 : 0}
+                />
+              </>
+            ) : (
+              <p className="text-[13px] text-white/60">
+                {error ? <span className="text-danger-400">{error}</span> : t("graphics.installHint", { size: bytes(lv.available?.size ?? 0) })}
+              </p>
+            )}
+          </div>
+          <Button
+            className="play-button shrink-0 font-medium"
+            isDisabled={!status.game?.ok || status.running || !lv.available}
+            isLoading={busy}
+            size="lg"
+            onPress={async () => {
+              if (await install()) addToast({ title: t("step.done"), color: "success" });
+            }}
+          >
+            {t("graphics.install")}
+          </Button>
+        </div>
+      )}
+
+      <Modal backdrop="blur" isOpen={uninstall.isOpen} onOpenChange={uninstall.onOpenChange}>
+        <ModalContent>
+          <ModalHeader>{t("settings.uninstall")}</ModalHeader>
+          <ModalBody>
+            <p className="text-sm text-white/70">{t("settings.uninstallConfirm")}</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={uninstall.onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              color="danger"
+              onPress={async () => {
+                uninstall.onClose();
+                try {
+                  await api.uninstallLumenveil();
+                  await refresh(false);
+                  await loadSettings();
+                  addToast({ title: t("step.done"), color: "success" });
+                } catch (e) {
+                  addToast({ title: String(e), color: "danger" });
+                }
+              }}
+            >
+              {t("settings.uninstall")}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {!on && lv.installed && (
         <div className="mx-8 mb-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
           {t("graphics.offHint")}
         </div>

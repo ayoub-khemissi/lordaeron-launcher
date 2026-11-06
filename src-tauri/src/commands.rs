@@ -463,6 +463,15 @@ pub async fn news() -> Res<serde_json::Value> {
     net::json::<serde_json::Value>(net::NEWS_FEED).await.map_err(err)
 }
 
+/// An older page of news (patches/launcher/<kind>-<page>.json), when the player scrolls past the first ten.
+#[tauri::command]
+pub async fn news_page(kind: String, page: u32) -> Res<serde_json::Value> {
+    if kind != "announcements" && kind != "changelog" {
+        return Err("unknown news".into());
+    }
+    net::json::<serde_json::Value>(&format!("{}{kind}-{page}.json", net::NEWS_PAGES)).await.map_err(err)
+}
+
 #[tauri::command]
 pub fn open(app: AppHandle, state: State<'_, AppState>, what: String, url: Option<String>) -> Res<()> {
     let opener = app.opener();

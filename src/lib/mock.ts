@@ -137,6 +137,10 @@ export async function mock(command: string, args?: Record<string, unknown>): Pro
       Object.assign(values, args?.values);
 
       return settings();
+    case "news_page":
+      return { posts: [] };
+    case "news":
+      return fetch("/mock-news.json").then((r) => r.json());
     case "rollback_lumenveil":
       return "0.6.1";
     default:
