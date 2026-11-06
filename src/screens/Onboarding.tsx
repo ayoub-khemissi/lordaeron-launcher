@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle2, ExternalLink, FolderSearch, XCircle } from "lu
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-import { CompareSlider } from "../components/CompareSlider";
+import { CompareGallery } from "../components/CompareSlider";
 import { PresetCard } from "../components/PresetCard";
 import { LANGUAGES, systemLanguage, useI18n } from "../i18n";
 import { api, pickFolder } from "../lib/api";
@@ -61,7 +61,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       <img alt="" className="absolute inset-0 h-full w-full object-cover opacity-30 blur-[2px]" src="/realms/lordaeron.webp" />
       <div className="absolute inset-0 bg-gradient-to-b from-wow-darker/60 via-wow-darker/80 to-wow-darker" />
 
-      <div className="glass relative flex max-h-[92%] w-[760px] flex-col rounded-3xl p-9">
+      <div className="glass relative flex max-h-[96%] w-[760px] flex-col rounded-3xl px-9 py-7">
         {steps.length > 1 && (
           <div className="mb-6 flex gap-1.5">
             {steps.map((s, i) => (
@@ -74,7 +74,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           <motion.div
             key={current}
             animate={{ opacity: 1, x: 0 }}
-            className="thin-scroll min-h-0 overflow-y-auto"
+            className="thin-scroll -mx-2 min-h-0 overflow-y-auto overflow-x-hidden px-2 pt-2"
             exit={{ opacity: 0, x: -16 }}
             initial={{ opacity: 0, x: 16 }}
             transition={{ duration: 0.18 }}
@@ -88,6 +88,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <h1 className="mt-4 font-heading text-4xl text-gold-gradient">{t("onboarding.welcome")}</h1>
                 <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-white/65">{t("onboarding.welcomeText")}</p>
                 <Select
+          disableAnimation
                   aria-label={t("settings.language")}
                   className="mt-6 w-60"
                   classNames={{ trigger: "bg-white/5" }}
@@ -192,14 +193,21 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <CompareSlider height={220} scene="02" />
+                  <CompareGallery height={190} />
                 </div>
-                <Switch className="mt-5" color="primary" isSelected={graphics} onValueChange={setGraphics}>
+                <Switch className="mt-3" color="primary" isSelected={graphics} onValueChange={setGraphics}>
                   <span className="text-sm">{t("onboarding.graphicsOn")}</span>
                 </Switch>
-                <div className={`mt-4 grid grid-cols-3 gap-3 transition ${graphics ? "" : "pointer-events-none opacity-40"}`}>
+                <div className={`mt-3 grid grid-cols-3 gap-3 transition ${graphics ? "" : "pointer-events-none opacity-40"}`}>
                   {["performance", "balanced", "ultra"].map((id) => (
-                    <PresetCard key={id} active={preset === id} id={id} isDefault={id === "ultra"} onSelect={() => setPreset(id)} />
+                    <PresetCard
+                      key={id}
+                      compact
+                      active={preset === id}
+                      id={id}
+                      isDefault={id === "ultra"}
+                      onSelect={() => setPreset(id)}
+                    />
                   ))}
                 </div>
               </div>
@@ -207,7 +215,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-8 flex items-center">
+        <div className="mt-6 flex items-center">
           {step > 0 && (
             <Button startContent={<ArrowLeft size={16} />} variant="light" onPress={() => setStep(step - 1)}>
               {t("onboarding.back")}

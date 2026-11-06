@@ -6,6 +6,7 @@ import type { Screen } from "../components/Sidebar";
 import { formatDate, RealmBadge, type NewsTarget } from "./News";
 import { useI18n } from "../i18n";
 import { currentPreset, valuesOf } from "../lib/settings";
+import { errorText } from "../lib/errors";
 import { useLauncher } from "../lib/store";
 import type { PendingItem, Progress, RealmDef } from "../lib/types";
 
@@ -261,10 +262,12 @@ function StatusLine(props: {
       <div className="flex items-center gap-3">
         <AlertTriangle className="shrink-0 text-danger" size={20} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-danger-400">{t("home.error")}</p>
-          <p className="truncate text-xs text-white/55" title={error}>
-            {error}
-          </p>
+          <p className="text-sm font-medium text-danger-400">{errorText(t, error).text}</p>
+          {errorText(t, error).detail && (
+            <p className="truncate text-xs text-white/45" title={errorText(t, error).detail}>
+              {errorText(t, error).detail}
+            </p>
+          )}
         </div>
         <Button size="sm" startContent={<RefreshCw size={14} />} variant="flat" onPress={onRetry}>
           {t("home.retry")}
@@ -284,7 +287,7 @@ function StatusLine(props: {
     const size = pending.reduce((n, p) => n + p.size, 0);
 
     return (
-      <Popover placement="top-start">
+      <Popover disableAnimation placement="top-start">
         <PopoverTrigger>
           <button className="group flex items-center gap-3 rounded-lg text-left">
             <RefreshCw className="shrink-0 text-wow-gold" size={20} />

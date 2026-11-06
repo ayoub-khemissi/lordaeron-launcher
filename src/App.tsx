@@ -1,11 +1,12 @@
-import { Spinner } from "@heroui/react";
+import { addToast, Progress, Spinner } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import { Sidebar, type Screen } from "./components/Sidebar";
 import { TitleBar } from "./components/TitleBar";
 import { I18nProvider, systemLanguage, useI18n, type Language } from "./i18n";
-import { checkLauncherUpdate, inApp } from "./lib/api";
+import { inApp, launcherUpdate } from "./lib/api";
+import { errorText } from "./lib/errors";
 import { LauncherProvider, useLauncher } from "./lib/store";
 import { GraphicsScreen } from "./screens/Graphics";
 import { GuideScreen } from "./screens/Guide";
@@ -32,11 +33,14 @@ function Shell() {
   // the launcher's own update, before anything else, when the game is not running
   useEffect(() => {
     if (!status || status.running) return;
-    checkLauncherUpdate().then((update) => {
-      if (!update) return;
-      setSelfUpdate(update.version);
-      update.install().catch(() => setSelfUpdate(null));
-    });
+    launcherUpdate(false)
+      .then((version) => {
+        if (!version) return;
+        setSelfUpdate(version);
+
+        return launcherUpdate(true);
+      })
+      .catch(() => setSelfUpdate(null));
     // once, at start
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status === null]);
@@ -46,6 +50,7 @@ function Shell() {
   return (
     <I18nProvider language={language}>
       <div className="flex h-full flex-col bg-wow-darker">
+        <ErrorToasts />
         <TitleBar />
         {!status || onboarding === null ? (
           <div className="flex flex-1 items-center justify-center">
@@ -96,21 +101,52 @@ function Shell() {
   );
 }
 
+// errors of background saves (settings, preferences), told in the player's language
+function ErrorToasts() {
+  const { t } = useI18n();
+
+  useEffect(() => {
+    const show = (e: Event) => addToast({ title: errorText(t, (e as CustomEvent<string>).detail).text, color: "danger" });
+
+    window.addEventListener("launcher-error", show);
+
+    return () => window.removeEventListener("launcher-error", show);
+  }, [t]);
+
+  return null;
+}
+
 function SelfUpdate({ version }: { version: string }) {
+  const { t, bytes } = useI18n();
+  const { progress } = useLauncher();
+  const p = progress?.step === "launcher" ? progress : null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="glass flex items-center gap-4 rounded-2xl px-8 py-6">
-        <Spinner color="primary" size="sm" />
-        <SelfUpdateText version={version} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm">
+      <div className="glass w-[420px] rounded-2xl p-6">
+        <div className="flex items-center gap-3">
+          <img alt="" className="h-9 w-9" src="/logo.webp" />
+          <div>
+            <p className="font-heading text-lg text-wow-gold-light">{t("home.launcherUpdateTitle")}</p>
+            <p className="text-[12.5px] text-white/55">{t("home.launcherUpdate", { version })}</p>
+          </div>
+        </div>
+        <Progress
+          aria-label={t("home.launcherUpdateTitle")}
+          className="mt-5"
+          classNames={{ indicator: "bg-gradient-to-r from-wow-gold-dark via-wow-gold to-wow-gold-light", track: "bg-white/10" }}
+          isIndeterminate={!p || p.total === 0}
+          size="sm"
+          value={p && p.total > 0 ? (p.done / p.total) * 100 : 0}
+        />
+        {p && p.total > 0 && (
+          <p className="mt-2 text-right text-[11.5px] tabular-nums text-white/45">
+            {bytes(p.done)} / {bytes(p.total)}
+          </p>
+        )}
       </div>
     </div>
   );
-}
-
-function SelfUpdateText({ version }: { version: string }) {
-  const { t } = useI18n();
-
-  return <span>{t("home.launcherUpdate", { version })}</span>;
 }
 
 export default function App() {

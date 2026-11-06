@@ -9,8 +9,9 @@ use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 
+use crate::error::coded;
 use crate::ini;
 use crate::version::{pe_version, Version};
 
@@ -65,7 +66,7 @@ fn safe(relative: &str) -> bool {
 
 /// A release zip's files, by relative path with forward slashes (the zips made by Compress-Archive use backslashes).
 pub fn read_zip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>> {
-    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes)).context("the download is not a zip")?;
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes)).map_err(|_| coded("badPackage", ""))?;
     let mut files = Vec::new();
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
@@ -74,14 +75,14 @@ pub fn read_zip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>> {
             continue;
         }
         if !safe(&name) {
-            bail!("unsafe path in the zip: {name}");
+            return Err(coded("badPackage", name));
         }
         let mut data = Vec::with_capacity(entry.size() as usize);
         entry.read_to_end(&mut data)?;
         files.push((name, data));
     }
     if !files.iter().any(|(n, _)| n == "CoAVolFog.dll") {
-        bail!("the zip holds no CoAVolFog.dll");
+        return Err(coded("badPackage", "CoAVolFog.dll"));
     }
     Ok(files)
 }
@@ -156,7 +157,7 @@ pub fn install(root: &Path, files: &[(String, Vec<u8>)], version: Version) -> Re
         if fs::read(&target).ok().as_deref() == Some(data.as_slice()) {
             continue;
         }
-        write(&target, data).with_context(|| format!("{name}: is the game still running?"))?;
+        write(&target, data).map_err(|_| coded("cannotWrite", name.clone()))?;
     }
     for (i, setting) in SETTINGS.iter().enumerate() {
         let Some((_, shipped)) = files.iter().find(|(n, _)| n == setting) else { continue };
@@ -194,7 +195,7 @@ pub fn install(root: &Path, files: &[(String, Vec<u8>)], version: Version) -> Re
 /// Back to the version before the last update (the updater's Restore-Lumenveil); that version is then held.
 /// Returns the version gone back to.
 pub fn rollback(root: &Path) -> Result<Version> {
-    let Some(current) = installed(root) else { bail!("Lumenveil is not installed") };
+    let Some(current) = installed(root) else { return Err(coded("notInstalled", "")) };
     let mut found: Vec<(std::time::SystemTime, PathBuf)> = fs::read_dir(backups(root))
         .map(|d| {
             d.flatten()
@@ -204,7 +205,7 @@ pub fn rollback(root: &Path) -> Result<Version> {
         })
         .unwrap_or_default();
     found.sort_by(|a, b| b.0.cmp(&a.0));
-    let Some((_, backup)) = found.into_iter().next() else { bail!("there is no earlier version to go back to") };
+    let Some((_, backup)) = found.into_iter().next() else { return Err(coded("noBackup", "")) };
     let name = backup.file_name().unwrap().to_string_lossy().into_owned();
     let previous = Version::parse(name.trim_start_matches("Lumenveil-")).unwrap_or(Version::ZERO);
     let added = backup.join("added.txt");
@@ -237,7 +238,7 @@ pub fn uninstall(root: &Path) -> Result<()> {
     ] {
         let path = root.join(file);
         if path.exists() {
-            fs::remove_file(&path).with_context(|| format!("cannot remove {file}: is the game still running?"))?;
+            fs::remove_file(&path).map_err(|_| coded("cannotWrite", file))?;
         }
     }
     for dir in ["CoAVolFog-spots", "Lumenveil"] {

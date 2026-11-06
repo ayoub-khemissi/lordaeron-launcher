@@ -32,8 +32,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Every offered language is complete
         run: node scripts/check-i18n.mjs
+      - name: Version of this build
+        shell: pwsh
+        run: Set-Content -Encoding ascii version.json ('{"version":"0.1.' + $env:GITHUB_RUN_NUMBER + '"}')
       - name: Build the installer
-        run: pnpm tauri build
+        run: pnpm tauri build --config version.json
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

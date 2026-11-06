@@ -40,6 +40,7 @@ pub fn run() {
             commands::rollback_lumenveil,
             commands::uninstall_lumenveil,
             commands::install_lumenveil,
+            commands::launcher_update,
             commands::news,
             commands::news_page,
             commands::open,

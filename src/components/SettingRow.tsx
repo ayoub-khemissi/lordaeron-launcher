@@ -133,6 +133,7 @@ function Control({ def, id, value, set }: { def: SettingDef; id: string; value: 
     case "choice":
       return (
         <Select
+          disableAnimation
           aria-label={id}
           className="w-64"
           classNames={{ trigger: "bg-white/5 data-[hover=true]:bg-white/10" }}

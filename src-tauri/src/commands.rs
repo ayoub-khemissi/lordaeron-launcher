@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 
 use launcher_core::feeds::{LauncherFeed, LumenveilFeed, Manifest, RealmDef};
 use launcher_core::game::{self, GameInfo};
+use launcher_core::error::coded;
 use launcher_core::lumenveil;
 use launcher_core::plan::{self, PendingItem, PlanInput};
 use launcher_core::prefs::Prefs;
@@ -14,6 +15,7 @@ use launcher_core::version::Version;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_opener::OpenerExt;
+use tauri_plugin_updater::UpdaterExt;
 
 use crate::net;
 use crate::state::AppState;
@@ -21,7 +23,15 @@ use crate::state::AppState;
 type Res<T> = Result<T, String>;
 
 fn err(e: impl std::fmt::Display) -> String {
-    e.to_string()
+    format!("other|{e}")
+}
+
+fn ui(e: anyhow::Error) -> String {
+    launcher_core::error::for_ui(&e)
+}
+
+fn code(code: &str) -> String {
+    format!("{code}|")
 }
 
 // the settings description and presets of the Lumenveil this launcher was built with, for a release without its own
@@ -202,7 +212,7 @@ impl Drop for Busy<'_> {
 #[tauri::command]
 pub async fn play(app: AppHandle, state: State<'_, AppState>, launch: bool) -> Res<()> {
     if state.busy.swap(true, Ordering::SeqCst) {
-        return Err("an update is already running".into());
+        return Err(code("busy"));
     }
     let _busy = Busy(state.inner());
     state.paused.store(false, Ordering::SeqCst);
@@ -212,20 +222,24 @@ pub async fn play(app: AppHandle, state: State<'_, AppState>, launch: bool) -> R
             state.log(&format!("play failed: {e:#}"));
         }
     }
-    result.map_err(|e| format!("{e:#}"))
+    result.map_err(ui)
 }
 
 async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow::Result<()> {
     refresh_feeds(state).await;
-    let Some(root) = state.game_dir() else { anyhow::bail!("choose the game folder first") };
+    let Some(root) = state.game_dir() else { return Err(coded("noGame", "")) };
     let info = game::check(&root);
     if !info.ok {
-        anyhow::bail!("this folder is not a World of Warcraft 3.3.5a client: {}", root.display());
+        return Err(coded("notGame", root.to_string_lossy()));
     }
     let status = compute_status(app, state);
     let steps = status.pending.clone();
     if !steps.is_empty() && state.is_running() {
-        anyhow::bail!("close the game first: its files cannot be updated while it runs");
+        // an update asked for while the game runs waits for the next start; Play itself is off while it runs
+        if !launch {
+            return Ok(());
+        }
+        return Err(coded("gameRunning", ""));
     }
     let prefs = state.prefs();
     let (feed, manifest, lv) = {
@@ -240,7 +254,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         emit(app, step.kind, &step.name, 0, step.size, index, count);
         match step.kind {
             "patch" => {
-                let entry = manifest.get(&step.name).ok_or_else(|| anyhow::anyhow!("{} is not published", step.name))?;
+                let entry = manifest.get(&step.name).ok_or_else(|| coded("notPublished", step.name.clone()))?;
                 let url = format!("{}{}", feed.patches_url, step.name);
                 let download = lumenveil::own(&root).join("download").join(&step.name);
                 let (app2, name) = (app.clone(), step.name.clone());
@@ -253,7 +267,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
                 let _ = std::fs::remove_file(&target);
                 std::fs::rename(&download, &target)
                     .or_else(|_| std::fs::copy(&download, &target).map(|_| ()))
-                    .map_err(|e| anyhow::anyhow!("cannot write {}: {e}", target.display()))?;
+                    .map_err(|_| coded("cannotWrite", step.name.clone()))?;
                 let _ = std::fs::remove_file(&download);
                 let _ = std::fs::remove_file(plan::aside_dir(&root).join(&step.name));
                 patches_changed = true;
@@ -275,7 +289,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
                 game::set_realm(&root, info.locale.as_deref().unwrap_or("enUS"), &feed.realmlist, &realm.name)?;
             }
             "lumenveil" => {
-                let lv = lv.clone().ok_or_else(|| anyhow::anyhow!("Lumenveil is not published"))?;
+                let lv = lv.clone().ok_or_else(|| coded("notPublished", "Lumenveil"))?;
                 let zip = lumenveil::own(&root).join("download").join(format!("Lumenveil-{}.zip", lv.version));
                 let app2 = app.clone();
                 let control = net::Control { paused: &state.paused, limit: prefs.download_limit };
@@ -321,7 +335,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         std::process::Command::new(root.join("Wow.exe"))
             .current_dir(&root)
             .spawn()
-            .map_err(|e| anyhow::anyhow!("cannot start Wow.exe: {e}"))?;
+            .map_err(|_| coded("cannotStart", ""))?;
         state.log("game started");
         state.running.store(true, Ordering::SeqCst);
         let _ = app.emit("game", true);
@@ -376,13 +390,13 @@ async fn run_setup(app: &AppHandle, root: &Path, locale: &str, index: usize, cou
         const CREATE_NO_WINDOW: u32 = 0x0800_0000;
         command.creation_flags(CREATE_NO_WINDOW);
     }
-    let mut child = command.spawn().map_err(|e| anyhow::anyhow!("cannot prepare Lumenveil's data: {e}"))?;
+    let mut child = command.spawn().map_err(|_| coded("setupFailed", ""))?;
     let start = Instant::now();
     const EXPECTED: f64 = 30.0;
     loop {
         if let Some(exit) = child.try_wait()? {
             if !exit.success() {
-                anyhow::bail!("Lumenveil's data could not be prepared (see Lumenveil\\setup.log)");
+                return Err(coded("setupFailed", ""));
             }
             break;
         }
@@ -406,11 +420,11 @@ pub struct SettingsFile {
 
 #[tauri::command]
 pub fn read_settings(state: State<'_, AppState>) -> Res<SettingsFile> {
-    let root = state.game_dir().ok_or("no game folder")?;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
     if lumenveil::installed(&root).is_none() {
-        return Err("Lumenveil is not installed".into());
+        return Err(code("notInstalled"));
     }
-    let values = lumenveil::read_settings(&root).map_err(err)?;
+    let values = lumenveil::read_settings(&root).map_err(ui)?;
     let parse = |name: &str, builtin: &str| -> serde_json::Value {
         lumenveil::schema_file(&root, name)
             .and_then(|t| serde_json::from_str(&t).ok())
@@ -426,10 +440,10 @@ pub fn read_settings(state: State<'_, AppState>) -> Res<SettingsFile> {
 
 #[tauri::command]
 pub fn write_settings(state: State<'_, AppState>, values: HashMap<String, String>) -> Res<SettingsFile> {
-    let root = state.game_dir().ok_or("no game folder")?;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
     let mut changes: Vec<(String, String)> = values.into_iter().collect();
     changes.sort();
-    lumenveil::write_settings(&root, &changes).map_err(err)?;
+    lumenveil::write_settings(&root, &changes).map_err(ui)?;
     read_settings(state)
 }
 
@@ -447,10 +461,10 @@ pub fn repair(state: State<'_, AppState>) {
 #[tauri::command]
 pub fn rollback_lumenveil(state: State<'_, AppState>) -> Res<Option<String>> {
     if state.is_running() {
-        return Err("close the game first".into());
+        return Err(code("gameRunning"));
     }
-    let root = state.game_dir().ok_or("no game folder")?;
-    let version = lumenveil::rollback(&root).map_err(err)?;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
+    let version = lumenveil::rollback(&root).map_err(ui)?;
     state.log(&format!("rolled back to {version}"));
     Ok(Some(version.to_string()))
 }
@@ -458,10 +472,10 @@ pub fn rollback_lumenveil(state: State<'_, AppState>) -> Res<Option<String>> {
 #[tauri::command]
 pub fn uninstall_lumenveil(state: State<'_, AppState>) -> Res<()> {
     if state.is_running() {
-        return Err("close the game first".into());
+        return Err(code("gameRunning"));
     }
-    let root = state.game_dir().ok_or("no game folder")?;
-    lumenveil::uninstall(&root).map_err(err)?;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
+    lumenveil::uninstall(&root).map_err(ui)?;
     let mut prefs = state.prefs();
     prefs.lumenveil = false;
     state.save_prefs(prefs).map_err(err)?;
@@ -478,6 +492,39 @@ pub async fn install_lumenveil(app: AppHandle, state: State<'_, AppState>) -> Re
     play(app, state, false).await
 }
 
+/// The launcher's own update, from lordaeron.eu (update.json, or update-test.json on the preview channel), signed
+/// with the key in ~/.tauri on the server. With `install`, it is downloaded (progress as the step "launcher"),
+/// installed and the launcher starts again; otherwise only the version is told.
+#[tauri::command]
+pub async fn launcher_update(app: AppHandle, state: State<'_, AppState>, install: bool) -> Res<Option<String>> {
+    let feed = if state.prefs().channel == "test" { net::UPDATE_TEST } else { net::UPDATE_STABLE };
+    let url = tauri::Url::parse(feed).map_err(err)?;
+    let updater = app.updater_builder().endpoints(vec![url]).map_err(err)?.build().map_err(err)?;
+    let Some(update) = updater.check().await.map_err(err)? else { return Ok(None) };
+    let version = update.version.clone();
+    if !install {
+        return Ok(Some(version));
+    }
+    if state.busy.swap(true, Ordering::SeqCst) {
+        return Err(code("busy"));
+    }
+    state.log(&format!("launcher update to {version}"));
+    let app2 = app.clone();
+    let mut done = 0u64;
+    let result = update
+        .download_and_install(
+            |chunk, total| {
+                done += chunk as u64;
+                emit(&app2, "launcher", &version, done, total.unwrap_or(0), 0, 1);
+            },
+            || {},
+        )
+        .await;
+    state.busy.store(false, Ordering::SeqCst);
+    result.map_err(err)?;
+    app.restart();
+}
+
 #[tauri::command]
 pub async fn news() -> Res<serde_json::Value> {
     net::json::<serde_json::Value>(net::NEWS_FEED).await.map_err(err)
@@ -487,7 +534,7 @@ pub async fn news() -> Res<serde_json::Value> {
 #[tauri::command]
 pub async fn news_page(kind: String, page: u32) -> Res<serde_json::Value> {
     if kind != "announcements" && kind != "changelog" {
-        return Err("unknown news".into());
+        return Err(code("other"));
     }
     net::json::<serde_json::Value>(&format!("{}{kind}-{page}.json", net::NEWS_PAGES)).await.map_err(err)
 }
@@ -497,13 +544,13 @@ pub fn open(app: AppHandle, state: State<'_, AppState>, what: String, url: Optio
     let opener = app.opener();
     match what.as_str() {
         "url" => {
-            let url = url.ok_or("no url")?;
+            let url = url.ok_or_else(|| code("other"))?;
             if !url.starts_with("https://") {
-                return Err("only https links open".into());
+                return Err(code("other"));
             }
             opener.open_url(url, None::<&str>).map_err(err)
         }
-        "game" => opener.open_path(state.game_dir().ok_or("no game folder")?.to_string_lossy(), None::<&str>).map_err(err),
+        "game" => opener.open_path(state.game_dir().ok_or_else(|| code("noGame"))?.to_string_lossy(), None::<&str>).map_err(err),
         "logs" => {
             let log = state.game_dir().map(|r| r.join("CoAVolFog.log")).filter(|p| p.is_file());
             match log {
@@ -513,6 +560,6 @@ pub fn open(app: AppHandle, state: State<'_, AppState>, what: String, url: Optio
                     .map_err(err),
             }
         }
-        _ => Err("unknown".into()),
+        _ => Err(code("other")),
     }
 }

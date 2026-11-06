@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::time::Duration;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
@@ -11,6 +11,8 @@ use tokio::io::AsyncWriteExt;
 pub const LAUNCHER_FEED: &str = "https://lordaeron.eu/patches/launcher/launcher.json";
 pub const NEWS_FEED: &str = "https://lordaeron.eu/patches/launcher/news.json";
 pub const NEWS_PAGES: &str = "https://lordaeron.eu/patches/launcher/";
+pub const UPDATE_STABLE: &str = "https://lordaeron.eu/patches/launcher/update.json";
+pub const UPDATE_TEST: &str = "https://lordaeron.eu/patches/launcher/update-test.json";
 
 fn client(timeout: Duration) -> Result<reqwest::Client> {
     Ok(reqwest::Client::builder()
@@ -73,7 +75,12 @@ pub async fn download(
     if have > 0 {
         request = request.header(reqwest::header::RANGE, format!("bytes={have}-"));
     }
-    let mut response = request.send().await.with_context(|| format!("cannot reach {url}"))?.error_for_status()?;
+    let mut response = request
+        .send()
+        .await
+        .map_err(|_| launcher_core::error::coded("offline", ""))?
+        .error_for_status()
+        .map_err(|_| launcher_core::error::coded("notPublished", target.file_name().unwrap_or_default().to_string_lossy()))?;
     if have > 0 && response.status() != reqwest::StatusCode::PARTIAL_CONTENT {
         // the server sends the whole file: start over
         have = 0;
@@ -99,7 +106,7 @@ pub async fn download(
         since_start += chunk.len() as u64;
         if control.paused.load(Ordering::SeqCst) {
             file.flush().await?;
-            bail!(PAUSED);
+            return Err(launcher_core::error::coded(PAUSED, ""));
         }
         if control.limit > 0 {
             let due = Duration::from_secs_f64(since_start as f64 / control.limit as f64);
@@ -128,7 +135,7 @@ pub async fn download(
     let hash = hex::encode(hasher.finalize());
     if (size > 0 && done != size) || !hash.eq_ignore_ascii_case(sha256) {
         let _ = tokio::fs::remove_file(&part).await;
-        bail!("the download of {} was damaged, please try again", target.file_name().unwrap_or_default().to_string_lossy());
+        return Err(launcher_core::error::coded("damaged", target.file_name().unwrap_or_default().to_string_lossy()));
     }
     let _ = tokio::fs::remove_file(target).await;
     tokio::fs::rename(&part, target).await.with_context(|| format!("cannot write {}", target.display()))?;

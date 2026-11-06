@@ -19,7 +19,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { PageHeader } from "../components/PageHeader";
 import { LANGUAGES, useI18n } from "../i18n";
-import { api } from "../lib/api";
+import { api, launcherUpdate } from "../lib/api";
+import { errorText } from "../lib/errors";
 import { useLauncher } from "../lib/store";
 import type { GameInfo } from "../lib/types";
 
@@ -51,7 +52,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       await loadSettings();
       if (done) addToast({ title: done, color: "success" });
     } catch (e) {
-      addToast({ title: e instanceof Error ? e.message : String(e), color: "danger" });
+      addToast({ title: errorText(t, e).text, color: "danger" });
     } finally {
       setWorking(null);
     }
@@ -94,6 +95,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       <div className="grid grid-cols-2 gap-5 [&>section]:mb-5">
         <Card icon={<Globe size={18} />} title={t("settings.language")}>
           <Select
+          disableAnimation
             aria-label={t("settings.language")}
             classNames={{ trigger: "bg-white/5" }}
             disallowEmptySelection
@@ -111,6 +113,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </Card>
         <Card icon={<Rocket size={18} />} title={t("settings.afterPlay")}>
           <Select
+          disableAnimation
             aria-label={t("settings.afterPlay")}
             classNames={{ trigger: "bg-white/5" }}
             disallowEmptySelection
@@ -136,6 +139,7 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
           </Row>
           <Row hint={t("settings.limitHint")} label={t("settings.limit")}>
             <Select
+          disableAnimation
               aria-label={t("settings.limit")}
               className="w-48"
               classNames={{ trigger: "bg-white/5" }}
@@ -241,6 +245,29 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       <Card icon={<Info size={18} />} title={t("settings.about")}>
         <div className="flex flex-wrap items-center gap-3 text-[13px] text-white/55">
           <span>{t("settings.launcherVersion", { version: status.launcherVersion })}</span>
+          <Button
+            isLoading={working === "self"}
+            size="sm"
+            startContent={working === "self" ? undefined : <RefreshCw size={14} />}
+            variant="light"
+            onPress={async () => {
+              setWorking("self");
+              try {
+                const version = await launcherUpdate(false);
+
+                if (version) {
+                  addToast({ title: t("home.launcherUpdate", { version }), color: "primary" });
+                  await launcherUpdate(true);
+                } else addToast({ title: t("settings.launcherCurrent"), color: "success" });
+              } catch (e) {
+                addToast({ title: errorText(t, e).text, color: "danger" });
+              } finally {
+                setWorking(null);
+              }
+            }}
+          >
+            {t("settings.launcherCheck")}
+          </Button>
           {status.lumenveil.installed && <span>· {t("graphics.version", { version: status.lumenveil.installed })}</span>}
           <div className="ml-auto flex gap-2">
             <Button size="sm" startContent={<Globe size={14} />} variant="flat" onPress={() => api.open("url", "https://lordaeron.eu")}>

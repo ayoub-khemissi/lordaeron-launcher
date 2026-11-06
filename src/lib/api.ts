@@ -67,25 +67,10 @@ export async function closeWindow(action: "minimize" | "close") {
   else await getCurrentWindow().minimize();
 }
 
-// the launcher's own update (tauri-plugin-updater): a signed installer from lordaeron.eu, run quietly, then a restart
-export async function checkLauncherUpdate(): Promise<null | { version: string; install: () => Promise<void> }> {
+// the launcher's own update (src-tauri commands::launcher_update): the version waiting, or with install = true the
+// download (progress as the step "launcher"), the install and a restart
+export async function launcherUpdate(install: boolean): Promise<string | null> {
   if (!inApp) return null;
-  try {
-    const { check } = await import("@tauri-apps/plugin-updater");
-    const update = await check();
 
-    if (!update) return null;
-
-    return {
-      version: update.version,
-      install: async () => {
-        await update.downloadAndInstall();
-        const { relaunch } = await import("@tauri-apps/plugin-process");
-
-        await relaunch();
-      },
-    };
-  } catch {
-    return null;
-  }
+  return call<string | null>("launcher_update", { install });
 }

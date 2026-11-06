@@ -77,7 +77,7 @@ export interface PendingItem {
 }
 
 export interface Progress {
-  step: PendingItem["kind"] | "done" | "launch";
+  step: PendingItem["kind"] | "done" | "launch" | "launcher";
   name: string;
   done: number; // bytes (the setup: thousandths)
   total: number;

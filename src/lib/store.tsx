@@ -1,4 +1,3 @@
-import { addToast } from "@heroui/react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { api, closeWindow, onGame, onProgress } from "./api";
@@ -97,7 +96,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch (e) {
-        if (message(e) === "paused") {
+        if (message(e).startsWith("paused|")) {
           // a pause the player asked for: the download goes on from there at Resume
           pausedLaunch.current = launch;
           setPaused(true);
@@ -123,7 +122,8 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
     try {
       setStatus(await api.setPrefs(prefs));
     } catch (e) {
-      addToast({ title: message(e), color: "danger" });
+      // translated by <ErrorToasts> (App.tsx), inside the language's provider
+      window.dispatchEvent(new CustomEvent("launcher-error", { detail: message(e) }));
     }
   }, []);
 
@@ -139,7 +139,8 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
       try {
         await api.writeSettings(batch);
       } catch (e) {
-        addToast({ title: message(e), color: "danger" });
+        // translated by <ErrorToasts> (App.tsx), inside the language's provider
+      window.dispatchEvent(new CustomEvent("launcher-error", { detail: message(e) }));
       }
     }, 250);
   }, []);

@@ -21,13 +21,14 @@ import {
 import { CircleCheck, Download, History, Info, MoreHorizontal, Radio, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { CompareSlider, SCENES } from "../components/CompareSlider";
+import { CompareGallery } from "../components/CompareSlider";
 import { PageHeader, Pill } from "../components/PageHeader";
 import { PresetCard } from "../components/PresetCard";
 import { SettingRow } from "../components/SettingRow";
 import { useI18n } from "../i18n";
 import { changedKeys, currentPreset, presetChanges, serialize, valuesOf } from "../lib/settings";
 import { api } from "../lib/api";
+import { errorText } from "../lib/errors";
 import { useLauncher } from "../lib/store";
 import type { SettingsFile } from "../lib/types";
 import { useSettingWords } from "../lib/words";
@@ -56,7 +57,7 @@ export function GraphicsScreen() {
       await loadSettings();
       if (version) addToast({ title: t("settings.rolledBack", { version }), color: "success" });
     } catch (e) {
-      addToast({ title: String(e), color: "danger" });
+      addToast({ title: errorText(t, e).text, color: "danger" });
     }
   };
 
@@ -66,7 +67,7 @@ export function GraphicsScreen() {
         actions={
           lv.installed ? (
             <>
-              <Dropdown placement="bottom-end">
+              <Dropdown disableAnimation placement="bottom-end">
                 <DropdownTrigger>
                   <Button isIconOnly aria-label={t("graphics.more")} isDisabled={busy || status.running} size="sm" variant="light">
                     <MoreHorizontal size={18} />
@@ -157,7 +158,7 @@ export function GraphicsScreen() {
               <>
                 <p className="text-[15px] font-medium text-white/90">{t("graphics.install")}</p>
                 <p className="mt-0.5 text-[13px] text-white/55">
-                  {error ? <span className="text-danger-400">{error}</span> : t("graphics.installHint", { size: bytes(lv.available?.size ?? 0) })}
+                  {error ? <span className="text-danger-400">{errorText(t, error).text}</span> : t("graphics.installHint", { size: bytes(lv.available?.size ?? 0) })}
                 </p>
               </>
             )}
@@ -201,7 +202,7 @@ export function GraphicsScreen() {
                   await loadSettings();
                   addToast({ title: t("step.done"), color: "success" });
                 } catch (e) {
-                  addToast({ title: String(e), color: "danger" });
+                  addToast({ title: errorText(t, e).text, color: "danger" });
                 }
               }}
             >
@@ -448,25 +449,11 @@ function AllSettings({ file, onChange }: { file: SettingsFile; onChange: (v: Rec
 
 function Compare() {
   const { t } = useI18n();
-  const [scene, setScene] = useState(SCENES[0]);
 
   return (
     <div className="thin-scroll h-full overflow-y-auto px-8 pb-8 pt-5">
-      <CompareSlider height={400} scene={scene} />
-      <div className="mt-4 flex items-center gap-3">
-        {SCENES.map((s) => (
-          <button
-            key={s}
-            className={`h-14 w-24 overflow-hidden rounded-lg border-2 transition ${
-              s === scene ? "border-wow-gold" : "border-transparent opacity-60 hover:opacity-100"
-            }`}
-            onClick={() => setScene(s)}
-          >
-            <img alt="" className="h-full w-full object-cover" src={`/compare/${s}-after.webp`} />
-          </button>
-        ))}
-        <p className="ml-auto max-w-xs text-right text-xs text-white/40">{t("graphics.compareHint")}</p>
-      </div>
+      <CompareGallery thumbnails height={380} />
+      <p className="mt-2 text-xs text-white/40">{t("graphics.compareHint")}</p>
     </div>
   );
 }
