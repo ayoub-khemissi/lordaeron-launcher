@@ -170,10 +170,9 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
     let send = |inputs: &[INPUT]| unsafe {
         SendInput(inputs.len() as u32, inputs.as_ptr(), std::mem::size_of::<INPUT>() as i32);
     };
+    // the whole ticket and Enter in one batch: the field fills at once, nothing from the player can come in between
+    let mut keys: Vec<INPUT> = Vec::new();
     for ch in ticket.to_lowercase().chars() {
-        if started.elapsed() > deadline || unsafe { GetForegroundWindow() } != hwnd {
-            return; // the player went to another window: nothing is typed there
-        }
         let scan = unsafe { VkKeyScanExW(ch as u16, layout) };
         if scan == -1 {
             return;
@@ -181,15 +180,16 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
         let vk = (scan & 0xFF) as u16;
         // a character behind Shift in this layout (a digit on AZERTY) is typed with it
         if (scan >> 8) & 1 != 0 {
-            send(&[press(VK_SHIFT, false), press(vk, false), press(vk, true), press(VK_SHIFT, true)]);
+            keys.extend([press(VK_SHIFT, false), press(vk, false), press(vk, true), press(VK_SHIFT, true)]);
         } else {
-            send(&[press(vk, false), press(vk, true)]);
+            keys.extend([press(vk, false), press(vk, true)]);
         }
-        std::thread::sleep(Duration::from_millis(20));
     }
-    if unsafe { GetForegroundWindow() } == hwnd {
-        send(&[press(VK_RETURN, false), press(VK_RETURN, true)]);
+    keys.extend([press(VK_RETURN, false), press(VK_RETURN, true)]);
+    if started.elapsed() > deadline || unsafe { GetForegroundWindow() } != hwnd {
+        return; // the player went to another window: nothing is typed there
     }
+    send(&keys);
 }
 
 #[cfg(not(windows))]
