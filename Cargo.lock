@@ -2029,6 +2029,7 @@ name = "launcher-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "hex",
  "serde",
  "serde_json",
@@ -2127,6 +2128,7 @@ name = "lordaeron-launcher"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "hex",
  "launcher-core",
  "reqwest 0.12.28",

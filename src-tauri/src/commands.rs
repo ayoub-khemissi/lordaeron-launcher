@@ -11,6 +11,7 @@ use launcher_core::error::coded;
 use launcher_core::lumenveil;
 use launcher_core::plan::{self, PendingItem, PlanInput};
 use launcher_core::prefs::Prefs;
+use launcher_core::spots::{self, Spot};
 use launcher_core::version::Version;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -289,6 +290,40 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
             "patchBack" => {
                 std::fs::rename(plan::aside_dir(&root).join(&step.name), root.join("Data").join(&step.name))?;
                 patches_changed = true;
+            }
+            "file" => {
+                let file = feed
+                    .files
+                    .iter()
+                    .find(|f| f.path == step.name && f.safe())
+                    .ok_or_else(|| coded("notPublished", step.name.clone()))?;
+                let download = lumenveil::own(&root).join("download").join(file.sha256.to_lowercase());
+                let (app2, name) = (app.clone(), step.name.clone());
+                let control = net::Control { paused: &state.paused, limit: prefs.download_limit };
+                net::download(&file.url, &download, file.size, &file.sha256, &control, |s| {
+                    emit_speed(&app2, "file", &name, s.done, s.total, s.speed, index, count)
+                })
+                .await?;
+                let target = root.join(&file.path);
+                if let Some(parent) = target.parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+                let _ = std::fs::remove_file(&target);
+                std::fs::rename(&download, &target)
+                    .or_else(|_| std::fs::copy(&download, &target).map(|_| ()))
+                    .map_err(|_| coded("cannotWrite", step.name.clone()))?;
+                let _ = std::fs::remove_file(&download);
+                let _ = std::fs::remove_file(plan::aside_dir(&root).join("files").join(&file.path));
+            }
+            "fileAside" | "fileBack" => {
+                let here = root.join(&step.name);
+                let kept = plan::aside_dir(&root).join("files").join(&step.name);
+                let (from, to) = if step.kind == "fileAside" { (here, kept) } else { (kept, here) };
+                if let Some(parent) = to.parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+                let _ = std::fs::remove_file(&to);
+                std::fs::rename(&from, &to).map_err(|_| coded("cannotWrite", step.name.clone()))?;
             }
             "realmlist" => {
                 let realm = realm_of(&feed, &prefs.realm);
@@ -571,4 +606,105 @@ pub fn open(app: AppHandle, state: State<'_, AppState>, what: String, url: Optio
         }
         _ => Err(code("other")),
     }
+}
+
+// ── Lumenveil reports: the spots marked with Ctrl+F5, sent to the team (the site's app/api/launcher/reports) ──
+
+#[derive(Clone, Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SentReport {
+    id: u64,
+    sent_at: u64, // seconds since 1970
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpotView {
+    #[serde(flatten)]
+    spot: Spot,
+    screenshot: Option<String>, // its file name, when one was taken there
+    sent: Option<SentReport>,
+}
+
+fn report_key(number: u32, saved: &str) -> String {
+    format!("{number}|{saved}")
+}
+
+fn sent_reports(state: &AppState) -> HashMap<String, SentReport> {
+    std::fs::read_to_string(state.prefs_file.with_file_name("reports.json"))
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn spots(state: State<'_, AppState>) -> Res<Vec<SpotView>> {
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
+    let sent = sent_reports(&state);
+    Ok(spots::read(&root)
+        .into_iter()
+        .map(|spot| SpotView {
+            screenshot: spots::screenshot_near(&root, &spot.saved)
+                .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned())),
+            sent: sent.get(&report_key(spot.number, &spot.saved)).cloned(),
+            spot,
+        })
+        .collect())
+}
+
+/// The screenshot taken at a spot, as an image the window can show (data URL).
+#[tauri::command]
+pub fn spot_screenshot(state: State<'_, AppState>, saved: String) -> Res<Option<String>> {
+    use base64::Engine;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
+    let Some(path) = spots::screenshot_near(&root, &saved) else { return Ok(None) };
+    let bytes = std::fs::read(&path).map_err(err)?;
+    let kind = if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("png")) { "png" } else { "jpeg" };
+    Ok(Some(format!("data:image/{kind};base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes))))
+}
+
+#[tauri::command]
+pub async fn send_report(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    number: u32,
+    saved: String,
+    message: String,
+    screenshot: bool,
+) -> Res<u64> {
+    use base64::Engine;
+    let root = state.game_dir().ok_or_else(|| code("noGame"))?;
+    let spot = spots::read(&root)
+        .into_iter()
+        .find(|s| s.number == number && s.saved == saved)
+        .ok_or_else(|| code("other"))?;
+    let prefs = state.prefs();
+    let image = if screenshot {
+        spots::screenshot_near(&root, &saved)
+            .and_then(|p| std::fs::read(p).ok())
+            .filter(|b| b.len() <= 3_000_000)
+            .map(|b| base64::engine::general_purpose::STANDARD.encode(b))
+    } else {
+        None
+    };
+    let realm = realm_of(&state.feeds.lock().unwrap().launcher, &prefs.realm).name;
+    let body = serde_json::json!({
+        "installId": prefs.install_id,
+        "accountName": prefs.account_name,
+        "realm": realm,
+        "language": prefs.language.clone().unwrap_or_default(),
+        "launcherVersion": app.package_info().version.to_string(),
+        "lumenveilVersion": lumenveil::installed(&root).map(|v| v.to_string()),
+        "spot": { "number": spot.number, "saved": spot.saved, "text": spot.text },
+        "settings": spots::settings(&root, &spot),
+        "message": message.trim(),
+        "screenshot": image,
+    });
+    let id = net::post_report(&body).await.map_err(ui)?;
+    let mut sent = sent_reports(&state);
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    sent.insert(report_key(number, &saved), SentReport { id, sent_at: now });
+    let _ = std::fs::write(state.prefs_file.with_file_name("reports.json"), serde_json::to_string(&sent).unwrap_or_default());
+    state.log(&format!("report {id} sent (spot {number})"));
+    Ok(id)
 }

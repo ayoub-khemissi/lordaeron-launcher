@@ -14,6 +14,50 @@ pub struct LauncherFeed {
     pub lumenveil: BTreeMap<String, String>,
     #[serde(default)]
     pub news: Vec<serde_json::Value>,
+    /// Any other file of the game folder the launcher keeps (an add-on, data made on the server, ...): declared here,
+    /// so new content reaches the players without a new launcher.
+    #[serde(default)]
+    pub files: Vec<ManagedFile>,
+    /// A message for every player on the Play tab (maintenance, an event), by language.
+    #[serde(default)]
+    pub notice: Option<Notice>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ManagedFile {
+    /// relative to the game folder, with forward slashes: "Interface/AddOns/Foo/Foo.toc", "lampdata.bin"
+    pub path: String,
+    pub url: String,
+    pub sha256: String,
+    pub size: u64,
+    #[serde(default)]
+    pub version: String,
+    /// the realms (ids) it belongs to; empty: every realm
+    #[serde(default)]
+    pub realms: Vec<String>,
+    /// only with the enhanced graphics installed
+    #[serde(default)]
+    pub requires_lumenveil: bool,
+}
+
+impl ManagedFile {
+    /// A path the launcher may write: relative, inside the game folder.
+    pub fn safe(&self) -> bool {
+        let p = &self.path;
+        !p.is_empty() && !p.starts_with('/') && !p.starts_with('\\') && !p.contains(':') && !p.split(['/', '\\']).any(|s| s == "..")
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Notice {
+    pub id: String,
+    #[serde(default)]
+    pub level: String, // info, warning
+    pub text: BTreeMap<String, String>,
+    #[serde(default)]
+    pub url: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

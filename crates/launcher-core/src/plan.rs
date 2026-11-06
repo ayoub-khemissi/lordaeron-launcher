@@ -155,6 +155,32 @@ pub fn plan(input: &PlanInput) -> Vec<PendingItem> {
         }
     }
 
+    for file in input.feed.files.iter().filter(|f| f.safe()) {
+        let here = root.join(&file.path);
+        let kept = aside_dir(root).join("files").join(&file.path);
+        let lumenveil_ok = !file.requires_lumenveil
+            || (input.want_lumenveil && (lumenveil::installed(root).is_some() || input.lumenveil.is_some()));
+        let wanted = (file.realms.is_empty() || file.realms.contains(&input.realm.id)) && lumenveil_ok;
+        let good = |p: &Path| sha256_file(p).is_some_and(|h| h.eq_ignore_ascii_case(&file.sha256));
+        if !wanted {
+            if here.is_file() && file.realms.len() > 0 {
+                out.push(PendingItem::new("fileAside", &file.path));
+            }
+            continue;
+        }
+        if here.is_file() && good(&here) {
+            continue;
+        }
+        if kept.is_file() && good(&kept) {
+            out.push(PendingItem::new("fileBack", &file.path));
+            continue;
+        }
+        let mut item = PendingItem::new("file", &file.path);
+        item.size = file.size;
+        item.to = Some(file.version.clone());
+        out.push(item);
+    }
+
     if let Some(locale) = game::locale(root) {
         if !game::realm_set(root, &locale, &input.feed.realmlist, &input.realm.name) {
             out.push(PendingItem::new("realmlist", &input.realm.name));
@@ -191,6 +217,33 @@ pub fn plan(input: &PlanInput) -> Vec<PendingItem> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn keeps_declared_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        let mut f = feed();
+        f.files = serde_json::from_str(&format!(
+            r#"[{{"path":"Interface/AddOns/Rime/Rime.toc","url":"https://x/Rime.toc","sha256":"{}","size":3,"realms":["rimeheart"]}},
+                {{"path":"../evil","url":"https://x","sha256":"00","size":1}}]"#,
+            hex::encode(Sha256::digest(b"abc"))
+        ))
+        .unwrap();
+        let rime = f.realms.iter().find(|r| r.id == "rimeheart").unwrap().clone();
+        let lord = f.realms.iter().find(|r| r.id == "lordaeron").unwrap().clone();
+        let plan_for = |realm: &RealmDef| {
+            plan(&PlanInput { root, feed: &f, realm, manifest: None, lumenveil: None, want_lumenveil: false, repair: false })
+                .into_iter()
+                .map(|p| (p.kind, p.name))
+                .collect::<Vec<_>>()
+        };
+        assert!(plan_for(&rime).contains(&("file", "Interface/AddOns/Rime/Rime.toc".into())));
+        assert!(!plan_for(&rime).iter().any(|(_, n)| n.contains("evil")), "a path out of the folder is ignored");
+        fs::create_dir_all(root.join("Interface/AddOns/Rime")).unwrap();
+        fs::write(root.join("Interface/AddOns/Rime/Rime.toc"), b"abc").unwrap();
+        assert!(!plan_for(&rime).iter().any(|(k, _)| *k == "file"));
+        assert!(plan_for(&lord).contains(&("fileAside", "Interface/AddOns/Rime/Rime.toc".into())));
+    }
 
     fn feed() -> LauncherFeed {
         LauncherFeed::builtin()

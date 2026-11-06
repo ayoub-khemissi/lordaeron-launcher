@@ -17,6 +17,9 @@ const KNOWN = new Set([
   "damaged",
   "badPackage",
   "offline",
+  "tooMany",
+  "messageTooShort",
+  "reportFailed",
 ]);
 
 // The backend's errors come as "code|detail" (crates/launcher-core/src/error.rs): the sentence is the player's

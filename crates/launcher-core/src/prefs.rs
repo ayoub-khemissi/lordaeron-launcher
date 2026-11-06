@@ -18,6 +18,8 @@ pub struct Prefs {
     pub download_limit: u64,
     pub auto_update: bool,
     pub account_name: Option<String>,
+    // a random id of this installation: the reports' limits and history go by it (never the player's identity)
+    pub install_id: String,
 }
 
 impl Default for Prefs {
@@ -33,13 +35,26 @@ impl Default for Prefs {
             download_limit: 0,
             auto_update: true,
             account_name: None,
+            install_id: String::new(),
         }
     }
 }
 
 impl Prefs {
     pub fn load(file: &Path) -> Prefs {
-        fs::read_to_string(file).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
+        let mut prefs: Prefs = fs::read_to_string(file).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
+        if prefs.install_id.len() != 32 {
+            use sha2::{Digest, Sha256};
+            let seed = format!(
+                "{:?}{}{:p}",
+                std::time::SystemTime::now(),
+                std::process::id(),
+                &prefs as *const Prefs
+            );
+            prefs.install_id = hex::encode(&Sha256::digest(seed.as_bytes())[..16]);
+            let _ = prefs.save(file);
+        }
+        prefs
     }
 
     pub fn save(&self, file: &Path) -> anyhow::Result<()> {

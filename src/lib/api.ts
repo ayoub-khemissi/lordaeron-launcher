@@ -1,4 +1,4 @@
-import type { GameInfo, News, NewsPost, Prefs, Progress, SettingsFile, Status } from "./types";
+import type { GameInfo, News, NewsPost, Prefs, Progress, SettingsFile, SpotView, Status } from "./types";
 
 import { mock } from "./mock";
 
@@ -29,6 +29,10 @@ export const api = {
   // turns the enhanced graphics on and installs them right away
   installLumenveil: () => call<void>("install_lumenveil"),
   news: () => call<News>("news"),
+  spots: () => call<SpotView[]>("spots"),
+  spotScreenshot: (saved: string) => call<string | null>("spot_screenshot", { saved }),
+  sendReport: (number: number, saved: string, message: string, screenshot: boolean) =>
+    call<number>("send_report", { number, saved, message, screenshot }),
   newsPage: (kind: "announcements" | "changelog", page: number) => call<{ posts: NewsPost[] }>("news_page", { kind, page }),
   open: (what: "game" | "logs" | "lumenveilLog" | "url", url?: string) => call<void>("open", { what, url }),
 };

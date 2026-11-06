@@ -11,6 +11,7 @@ use tokio::io::AsyncWriteExt;
 pub const LAUNCHER_FEED: &str = "https://lordaeron.eu/patches/launcher/launcher.json";
 pub const NEWS_FEED: &str = "https://lordaeron.eu/patches/launcher/news.json";
 pub const NEWS_PAGES: &str = "https://lordaeron.eu/patches/launcher/";
+pub const REPORTS: &str = "https://lordaeron.eu/api/launcher/reports";
 pub const UPDATE_STABLE: &str = "https://lordaeron.eu/patches/launcher/update.json";
 pub const UPDATE_TEST: &str = "https://lordaeron.eu/patches/launcher/update-test.json";
 
@@ -140,4 +141,25 @@ pub async fn download(
     let _ = tokio::fs::remove_file(target).await;
     tokio::fs::rename(&part, target).await.with_context(|| format!("cannot write {}", target.display()))?;
     Ok(())
+}
+
+/// Sends a Lumenveil report to the site; its answer is the report's number, or one of the site's error codes.
+pub async fn post_report(body: &serde_json::Value) -> Result<u64> {
+    use launcher_core::error::coded;
+    let response = client(Duration::from_secs(60))?
+        .post(REPORTS)
+        .json(body)
+        .send()
+        .await
+        .map_err(|_| coded("offline", ""))?;
+    let status = response.status();
+    let answer: serde_json::Value = response.json().await.unwrap_or_default();
+    if status.is_success() {
+        return answer["id"].as_u64().ok_or_else(|| coded("reportFailed", ""));
+    }
+    Err(match answer["error"].as_str() {
+        Some("tooMany") => coded("tooMany", ""),
+        Some("messageTooShort") => coded("messageTooShort", ""),
+        _ => coded("reportFailed", status.as_u16().to_string()),
+    })
 }

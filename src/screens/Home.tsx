@@ -1,11 +1,13 @@
 import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip } from "@heroui/react";
-import { AlertTriangle, CheckCircle2, ChevronUp, Loader2, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronUp, Info, Loader2, X, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 import type { Screen } from "../components/Sidebar";
 import { formatDate, RealmBadge, type NewsTarget } from "./News";
 import { useI18n } from "../i18n";
 import { currentPreset, valuesOf } from "../lib/settings";
+import { api } from "../lib/api";
 import { errorText } from "../lib/errors";
 import { useLauncher } from "../lib/store";
 import type { PendingItem, Progress, RealmDef } from "../lib/types";
@@ -42,6 +44,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
       <div className="absolute inset-0 bg-gradient-to-t from-wow-darker via-transparent to-wow-darker/40" />
 
       <div className="relative flex h-full flex-col px-10 pb-7 pt-10">
+        <NoticeBanner />
         <div className="flex gap-8">
         <div className="min-w-0 flex-1">
         <div className="max-w-xl">
@@ -376,6 +379,56 @@ function LatestNews({ news, realm, onNews }: { news: ReturnType<typeof useLaunch
           <p className="mt-1 text-[11px] text-white/40">{formatDate(changelog.date, language)}</p>
         </button>
       )}
+    </div>
+  );
+}
+
+// the message lordaeron.eu puts in launcher.json (maintenance, an event): shown until the player hides it
+function NoticeBanner() {
+  const { t, language } = useI18n();
+  const { status } = useLauncher();
+  const notice = status?.feed?.notice;
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem("notice-hidden");
+    } catch {
+      return null;
+    }
+  });
+
+  if (!notice || hidden === notice.id) return null;
+  const text = notice.text[language] ?? notice.text.en;
+
+  if (!text) return null;
+  const warning = notice.level === "warning";
+
+  return (
+    <div
+      className={`-mt-4 mb-6 flex items-center gap-3 rounded-xl border px-4 py-2.5 text-[13px] backdrop-blur ${
+        warning ? "border-amber-400/40 bg-amber-500/15 text-amber-100" : "border-wow-blue/40 bg-wow-blue/10 text-sky-100"
+      }`}
+    >
+      {warning ? <AlertTriangle className="shrink-0" size={16} /> : <Info className="shrink-0" size={16} />}
+      <span className="min-w-0 flex-1">{text}</span>
+      {notice.url && (
+        <button className="shrink-0 font-medium underline underline-offset-2" onClick={() => api.open("url", notice.url!)}>
+          {t("home.noticeMore")}
+        </button>
+      )}
+      <button
+        aria-label={t("home.noticeClose")}
+        className="shrink-0 rounded p-1 opacity-70 hover:bg-white/10 hover:opacity-100"
+        onClick={() => {
+          setHidden(notice.id);
+          try {
+            localStorage.setItem("notice-hidden", notice.id);
+          } catch {
+            /* the message comes back next time */
+          }
+        }}
+      >
+        <X size={14} />
+      </button>
     </div>
   );
 }

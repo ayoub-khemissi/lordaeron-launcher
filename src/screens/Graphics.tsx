@@ -33,6 +33,8 @@ import { useLauncher } from "../lib/store";
 import type { SettingsFile } from "../lib/types";
 import { useSettingWords } from "../lib/words";
 
+import { ReportsTab } from "./Reports";
+
 export function GraphicsScreen() {
   const { t, bytes } = useI18n();
   const { status, settings, setPrefs, writeSettings, install, busy, progress, error, refresh, loadSettings } = useLauncher();
@@ -133,6 +135,7 @@ export function GraphicsScreen() {
             <Tab key="presets" title={t("graphics.tab.presets")} />
             <Tab key="all" title={t("graphics.tab.all")} />
             <Tab key="compare" title={t("graphics.tab.compare")} />
+            <Tab key="reports" title={t("graphics.tab.reports")} />
           </Tabs>
         }
         title={t("graphics.title")}
@@ -215,6 +218,8 @@ export function GraphicsScreen() {
       <div className={`relative min-h-0 flex-1 transition-opacity ${on ? "" : "opacity-60"}`}>
         {tab === "compare" ? (
           <Compare />
+        ) : tab === "reports" ? (
+          <ReportsTab />
         ) : !settings ? (
           <NotInstalled />
         ) : tab === "presets" ? (

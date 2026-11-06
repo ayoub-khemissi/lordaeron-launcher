@@ -32,7 +32,15 @@ export interface RealmDef {
   hidden?: boolean;
 }
 
+export interface Notice {
+  id: string;
+  level: "info" | "warning" | "";
+  text: Record<string, string>;
+  url?: string | null;
+}
+
 export interface LauncherFeed {
+  notice?: Notice | null;
   realmlist: string;
   realms: RealmDef[];
   patchesUrl: string;
@@ -78,7 +86,7 @@ export interface PatchState {
 }
 
 export interface PendingItem {
-  kind: "patch" | "patchAside" | "patchBack" | "lumenveil" | "setup" | "realmlist";
+  kind: "patch" | "patchAside" | "patchBack" | "file" | "fileAside" | "fileBack" | "lumenveil" | "setup" | "realmlist";
   name: string;
   size: number; // bytes to download, 0 when nothing is
   from?: string | null;
@@ -186,4 +194,16 @@ export interface News {
   pages?: { announcements: number; changelog: number }; // pages of 10, the first being here
   announcements: NewsPost[];
   changelog: NewsPost[];
+}
+
+// a place marked with Ctrl+F5 in the game (CoAVolFog-spots.txt), and whether it was sent to the team
+export interface SpotView {
+  number: number;
+  saved: string; // local time "2026-11-06 18:05:00"
+  map: number;
+  gameTime: string;
+  weather: string; // "rain 0.65"
+  indoors: boolean;
+  screenshot: string | null;
+  sent: { id: number; sentAt: number } | null;
 }

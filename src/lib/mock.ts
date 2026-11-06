@@ -43,6 +43,9 @@ function status(): Status {
     game: prefs.gameDir ? game(prefs.gameDir) : null,
     online: true,
     feed: {
+      notice: new URLSearchParams(location.search).has("notice")
+        ? { id: "m1", level: "warning", text: { fr: "Maintenance ce soir de 23 h à 23 h 15 : les royaumes redémarrent.", en: "Maintenance tonight from 11 pm to 11:15 pm." }, url: "https://lordaeron.eu" }
+        : null,
       realmlist: "logon.lordaeron.eu",
       patchesUrl: "https://lordaeron.eu/patches/",
       lumenveil: { stable: "", test: "" },
@@ -152,6 +155,15 @@ export async function mock(command: string, args?: Record<string, unknown>): Pro
       Object.assign(values, args?.values);
 
       return settings();
+    case "spots":
+      return [
+        { number: 2, saved: "2026-11-06 18:09:30", map: 0, gameTime: "06:02", weather: "clear 0.00", indoors: true, screenshot: null, sent: null },
+        { number: 1, saved: "2026-11-06 18:05:00", map: 571, gameTime: "21:14", weather: "rain 0.65", indoors: false, screenshot: "WoWScrnShot_110626_180502.jpg", sent: { id: 12, sentAt: 1793988000 } },
+      ];
+    case "spot_screenshot":
+      return "/compare/02-after.webp";
+    case "send_report":
+      return 13;
     case "news_page":
       return { posts: [] };
     case "news":

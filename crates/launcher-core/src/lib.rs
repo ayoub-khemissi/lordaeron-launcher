@@ -8,4 +8,5 @@ pub mod ini;
 pub mod lumenveil;
 pub mod plan;
 pub mod prefs;
+pub mod spots;
 pub mod version;
