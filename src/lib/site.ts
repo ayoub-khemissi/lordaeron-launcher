@@ -17,5 +17,5 @@ export const CLASS_COLORS: Record<number, string> = {
   11: "#FF7D0A",
 };
 
-// the soul shards' own icon, as on the site's shop
-export const SHARD_ICON = "https://wow.zamimg.com/images/wow/icons/large/inv_misc_gem_amethyst_02.jpg";
+// the Soul Shard's own icon, the site's (lordaeron-front public/img/icons/soul-shard.svg), bundled
+export const SHARD_ICON = "/soul-shard.svg";

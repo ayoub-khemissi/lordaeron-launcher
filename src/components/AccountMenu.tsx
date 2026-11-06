@@ -45,7 +45,7 @@ export function AccountMenu() {
           <span className="font-semibold">{name}</span>
           {account && (
             <span className="flex items-center gap-1 border-l border-white/10 pl-2 tabular-nums text-violet-200">
-              <img alt="" className="h-3.5 w-3.5 rounded-sm" src={SHARD_ICON} />
+              <img alt="" className="h-4 w-4" src={SHARD_ICON} />
               {new Intl.NumberFormat(language).format(account.shards)}
             </span>
           )}

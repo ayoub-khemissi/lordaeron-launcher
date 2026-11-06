@@ -22,7 +22,7 @@ export function ShopScreen() {
       <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-8 pb-10">
         <section className="relative overflow-hidden rounded-2xl border border-violet-400/25 bg-gradient-to-br from-violet-500/15 via-black/30 to-black/40 p-6">
           <div className="flex items-center gap-5">
-            <img alt="" className="h-16 w-16 rounded-xl border border-violet-300/40 shadow-[0_0_30px_rgba(167,139,250,0.35)]" src={SHARD_ICON} />
+            <img alt="" className="h-16 w-16 drop-shadow-[0_0_18px_rgba(160,55,116,0.55)]" src={SHARD_ICON} />
             {status?.prefs.signedInAs ? (
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-widest text-violet-200/70">{t("shop.balance")}</p>
