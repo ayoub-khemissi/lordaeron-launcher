@@ -55,6 +55,8 @@ export function systemLanguage(): Language {
 
 type Vars = Record<string, string | number>;
 
+const UNITS: Partial<Record<Language, [string, string]>> = { fr: ["Ko", "Mo"], ru: ["КБ", "МБ"], pl: ["kB", "MB"] };
+
 // "{count, plural, one {# update} other {# updates}}" and "{name}": the two forms the messages use
 export function format(message: string, vars: Vars | undefined, language: string): string {
   if (!vars) return message;
@@ -134,10 +136,14 @@ export function I18nProvider({ language, children }: { language: Language; child
       language,
       settingWords,
       t: (key, vars) => format(messages[key] ?? en[key] ?? key, vars, language),
-      bytes: (n) =>
-        n >= 1_000_000
-          ? `${new Intl.NumberFormat(language, { maximumFractionDigits: 1 }).format(n / 1_000_000)} MB`
-          : `${new Intl.NumberFormat(language, { maximumFractionDigits: 0 }).format(Math.max(1, n / 1000))} kB`,
+      bytes: (n) => {
+        // each language's own symbols: ko/Mo in French, КБ/МБ in Russian
+        const [kb, mb] = UNITS[language] ?? ["kB", "MB"];
+
+        return n >= 1_000_000
+          ? `${new Intl.NumberFormat(language, { maximumFractionDigits: 1 }).format(n / 1_000_000)} ${mb}`
+          : `${new Intl.NumberFormat(language, { maximumFractionDigits: 0 }).format(Math.max(1, n / 1000))} ${kb}`;
+      },
     }),
     [language, messages, settingWords],
   );

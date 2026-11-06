@@ -118,53 +118,55 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       </div>
 
       <Card icon={<Download size={18} />} title={t("settings.downloads")}>
-        <div className="flex flex-wrap items-start gap-x-10 gap-y-5">
-          <Switch
-            classNames={{ base: "max-w-md items-start", label: "flex flex-col gap-0.5" }}
-            color="primary"
-            isSelected={prefs.autoUpdate}
-            onValueChange={(v) => setPrefs({ autoUpdate: v })}
-          >
-            <span className="text-[14px] font-medium text-white/90">{t("settings.autoUpdate")}</span>
-            <span className="text-[12px] text-white/45">{t("settings.autoUpdateHint")}</span>
-          </Switch>
-          <Select
-            className="w-56"
-            classNames={{ trigger: "bg-white/5", label: "text-white/70" }}
-            disallowEmptySelection
-            label={t("settings.limit")}
-            labelPlacement="outside"
-            selectedKeys={[String(prefs.downloadLimit)]}
-            onSelectionChange={(keys) => setPrefs({ downloadLimit: Number([...keys][0]) })}
-          >
-            {LIMITS.map((l) => (
-              <SelectItem key={String(l)}>{l === 0 ? t("settings.limitNone") : `${bytes(l)}/s`}</SelectItem>
-            ))}
-          </Select>
-          <Button
-            className="self-end"
-            isLoading={working === "check"}
-            size="sm"
-            startContent={working === "check" ? undefined : <RefreshCw size={14} />}
-            variant="flat"
-            onPress={async () => {
-              setWorking("check");
-              const s = await refresh(true);
+        <div className="divide-y divide-white/[0.06]">
+          <Row hint={t("settings.autoUpdateHint")} label={t("settings.autoUpdate")}>
+            <Switch
+              aria-label={t("settings.autoUpdate")}
+              color="primary"
+              isSelected={prefs.autoUpdate}
+              onValueChange={(v) => setPrefs({ autoUpdate: v })}
+            />
+          </Row>
+          <Row hint={t("settings.limitHint")} label={t("settings.limit")}>
+            <Select
+              aria-label={t("settings.limit")}
+              className="w-48"
+              classNames={{ trigger: "bg-white/5" }}
+              disallowEmptySelection
+              selectedKeys={[String(prefs.downloadLimit)]}
+              size="sm"
+              onSelectionChange={(keys) => setPrefs({ downloadLimit: Number([...keys][0]) })}
+            >
+              {LIMITS.map((l) => (
+                <SelectItem key={String(l)}>{l === 0 ? t("settings.limitNone") : `${bytes(l)}/s`}</SelectItem>
+              ))}
+            </Select>
+          </Row>
+          <Row hint={t("settings.checkHint")} label={t("settings.check")}>
+            <Button
+              isLoading={working === "check"}
+              size="sm"
+              startContent={working === "check" ? undefined : <RefreshCw size={14} />}
+              variant="flat"
+              onPress={async () => {
+                setWorking("check");
+                const s = await refresh(true);
 
-              setWorking(null);
-              if (s)
-                addToast({
-                  title: t("settings.checked", {
-                    result: s.pending.length
-                      ? t("home.pending", { count: s.pending.length, size: bytes(s.pending.reduce((n, p) => n + p.size, 0)) })
-                      : t("settings.upToDate"),
-                  }),
-                  color: "success",
-                });
-            }}
-          >
-            {t("settings.check")}
-          </Button>
+                setWorking(null);
+                if (s)
+                  addToast({
+                    title: t("settings.checked", {
+                      result: s.pending.length
+                        ? t("home.pending", { count: s.pending.length, size: bytes(s.pending.reduce((n, p) => n + p.size, 0)) })
+                        : t("settings.upToDate"),
+                    }),
+                    color: "success",
+                  });
+              }}
+            >
+              {t("settings.checkNow")}
+            </Button>
+          </Row>
         </div>
       </Card>
 
@@ -275,6 +277,19 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
           </ModalFooter>
         </ModalContent>
       </Modal>
+    </div>
+  );
+}
+
+// one setting: its name and what it does on the left, its control on the right
+function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-6 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-medium text-white/90">{label}</p>
+        {hint && <p className="mt-0.5 text-[12px] leading-snug text-white/45">{hint}</p>}
+      </div>
+      <div className="flex shrink-0 items-center">{children}</div>
     </div>
   );
 }

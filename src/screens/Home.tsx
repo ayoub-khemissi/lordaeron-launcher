@@ -1,5 +1,5 @@
 import { Button, Popover, PopoverContent, PopoverTrigger, Progress as Bar, Spinner, Tooltip } from "@heroui/react";
-import { AlertTriangle, CheckCircle2, ChevronUp, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronUp, Loader2, CloudOff, FolderOpen, Gamepad2, Pause, Play as PlayIcon, RefreshCw, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 import type { Screen } from "../components/Sidebar";
@@ -97,13 +97,15 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                   onRetry={() => (error ? play(false) : refresh(true))}
                 />
               </div>
-              <button
-                className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-xs text-white/75 transition hover:border-wow-gold/40 hover:text-wow-gold-light"
-                onClick={() => onScreen("graphics")}
-              >
-                <Sparkles className={status.prefs.lumenveil ? "text-wow-gold" : "text-white/40"} size={14} />
-                {graphicsLabel}
-              </button>
+              {!busy && (
+                <button
+                  className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3.5 text-xs text-white/75 transition hover:border-wow-gold/40 hover:text-wow-gold-light"
+                  onClick={() => onScreen("graphics")}
+                >
+                  <Sparkles className={status.prefs.lumenveil ? "text-wow-gold" : "text-white/40"} size={14} />
+                  {graphicsLabel}
+                </button>
+              )}
               <button
                 className="play-button h-14 w-52 shrink-0 rounded-xl font-heading text-xl tracking-[0.18em] transition disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-50"
                 disabled={busy || status.running}
@@ -114,8 +116,8 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                     <Gamepad2 size={20} /> {t("home.inGame").toUpperCase()}
                   </span>
                 ) : busy ? (
-                  <span className="flex items-center justify-center gap-3">
-                    <Spinner color="current" size="sm" /> {t("home.updating").toUpperCase()}
+                  <span className="flex items-center justify-center gap-2.5 text-[17px] tracking-[0.12em]">
+                    <Loader2 className="animate-spin" size={17} /> {t("home.updating").toUpperCase()}
                   </span>
                 ) : paused ? (
                   t("home.resume").toUpperCase()
