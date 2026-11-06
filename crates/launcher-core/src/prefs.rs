@@ -20,6 +20,10 @@ pub struct Prefs {
     pub account_name: Option<String>,
     // a random id of this installation: the reports' limits and history go by it (never the player's identity)
     pub install_id: String,
+    /// the account signed in to the launcher (its device token is in Windows' credential manager, never here)
+    pub signed_in_as: Option<String>,
+    /// at Play, the launcher fills the game's login screen with a one-time ticket
+    pub auto_login: bool,
 }
 
 impl Default for Prefs {
@@ -36,6 +40,8 @@ impl Default for Prefs {
             auto_update: true,
             account_name: None,
             install_id: String::new(),
+            signed_in_as: None,
+            auto_login: true,
         }
     }
 }

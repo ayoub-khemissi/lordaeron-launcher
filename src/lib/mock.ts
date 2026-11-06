@@ -18,6 +18,8 @@ const prefs: Prefs = {
   downloadLimit: 0,
   autoUpdate: true,
   accountName: null,
+  signedInAs: new URLSearchParams(location.search).has("signed") ? "ARTHAS" : null,
+  autoLogin: true,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [
@@ -155,6 +157,15 @@ export async function mock(command: string, args?: Record<string, unknown>): Pro
       Object.assign(values, args?.values);
 
       return settings();
+    case "account_login":
+      if (!(args?.code as string | undefined) && String(args?.username).toUpperCase() === "TOTP") throw new Error("totpRequired|");
+      Object.assign(prefs, { signedInAs: String(args?.username).toUpperCase(), accountName: String(args?.username).toUpperCase() });
+
+      return status();
+    case "account_logout":
+      prefs.signedInAs = null;
+
+      return status();
     case "spots":
       return [
         { number: 2, saved: "2026-11-06 18:09:30", map: 0, gameTime: "06:02", weather: "clear 0.00", indoors: true, screenshot: null, sent: null },

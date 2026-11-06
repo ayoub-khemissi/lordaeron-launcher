@@ -29,3 +29,11 @@ tauri-plugin-single-instance = "2"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 tokio = { version = "1", features = ["time", "fs", "io-util"] }
 sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_UI_Input_KeyboardAndMouse",
+] }

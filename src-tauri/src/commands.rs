@@ -379,11 +379,34 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         emit(app, "launch", "", 0, 0, count, count);
         // a fresh cache at every start (Ayoub, 06/11/2026): items, quests and creatures always as the server has them
         game::clear_cache(&root);
-        game::set_account_name(&root, prefs.account_name.as_deref())?;
-        std::process::Command::new(root.join("Wow.exe"))
+        // signed in: a one-time ticket the launcher types on the login screen (crate::login); else the name alone
+        let mut ticket = None;
+        if prefs.auto_login && prefs.signed_in_as.is_some() {
+            match crate::login::ticket().await {
+                Ok((name, t)) => {
+                    game::set_account_name(&root, Some(&name))?;
+                    ticket = Some(t);
+                }
+                Err(e) => {
+                    state.log(&format!("no launcher ticket: {e}"));
+                    if e.to_string() == "signedOut" {
+                        let mut p = state.prefs();
+                        p.signed_in_as = None;
+                        state.save_prefs(p)?;
+                    }
+                    game::set_account_name(&root, prefs.account_name.as_deref())?;
+                }
+            }
+        } else {
+            game::set_account_name(&root, prefs.account_name.as_deref())?;
+        }
+        let child = std::process::Command::new(root.join("Wow.exe"))
             .current_dir(&root)
             .spawn()
             .map_err(|_| coded("cannotStart", ""))?;
+        if let Some(ticket) = ticket {
+            std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(3500)));
+        }
         state.log("game started");
         state.running.store(true, Ordering::SeqCst);
         let _ = app.emit("game", true);
@@ -711,4 +734,36 @@ pub async fn send_report(
     let _ = std::fs::write(state.prefs_file.with_file_name("reports.json"), serde_json::to_string(&sent).unwrap_or_default());
     state.log(&format!("report {id} sent (spot {number})"));
     Ok(id)
+}
+
+// ── the launcher's sign-in (crate::login) ──
+
+#[tauri::command]
+pub async fn account_login(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    username: String,
+    password: String,
+    code: Option<String>,
+) -> Res<Status> {
+    let device = std::env::var("COMPUTERNAME").unwrap_or_else(|_| "Windows".into());
+    let name = crate::login::sign_in(username.trim(), &password, code.as_deref().filter(|c| !c.trim().is_empty()), &device)
+        .await
+        .map_err(ui)?;
+    let mut prefs = state.prefs();
+    prefs.signed_in_as = Some(name.clone());
+    prefs.account_name = Some(name);
+    state.save_prefs(prefs).map_err(err)?;
+    state.log("signed in");
+    Ok(compute_status(&app, &state))
+}
+
+#[tauri::command]
+pub async fn account_logout(app: AppHandle, state: State<'_, AppState>) -> Res<Status> {
+    crate::login::sign_out().await;
+    let mut prefs = state.prefs();
+    prefs.signed_in_as = None;
+    state.save_prefs(prefs).map_err(err)?;
+    state.log("signed out");
+    Ok(compute_status(&app, &state))
 }

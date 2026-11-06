@@ -2,6 +2,7 @@
 //! process, the progress the window shows, and the files and folders of this PC.
 
 mod commands;
+mod login;
 mod net;
 mod state;
 mod watch;
@@ -41,6 +42,8 @@ pub fn run() {
             commands::uninstall_lumenveil,
             commands::install_lumenveil,
             commands::launcher_update,
+            commands::account_login,
+            commands::account_logout,
             commands::spots,
             commands::spot_screenshot,
             commands::send_report,

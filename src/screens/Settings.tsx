@@ -18,6 +18,7 @@ import { CheckCircle2, Download, FileText, FolderOpen, Globe, History, Info, Lay
 import { useEffect, useState, type ReactNode } from "react";
 
 import { PageHeader, Pill } from "../components/PageHeader";
+import { SignInModal } from "../components/SignIn";
 import { LANGUAGES, useI18n } from "../i18n";
 import { api, launcherUpdate } from "../lib/api";
 import { errorText } from "../lib/errors";
@@ -37,8 +38,9 @@ export function gameProblemText(t: ReturnType<typeof useI18n>["t"], game: GameIn
 
 export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
   const { t, bytes } = useI18n();
-  const { status, setPrefs, play, refresh, loadSettings, busy } = useLauncher();
+  const { status, setPrefs, play, refresh, loadSettings, busy, setStatus } = useLauncher();
   const uninstall = useDisclosure();
+  const signIn = useDisclosure();
   const [working, setWorking] = useState<string | null>(null);
 
   if (!status) return null;
@@ -87,9 +89,41 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       </Card>
 
       <Card icon={<UserRound size={18} />} title={t("settings.account")}>
-        <Row hint={t("settings.accountHint")} label={t("settings.accountName")}>
-          <AccountName value={prefs.accountName ?? ""} onCommit={(v) => setPrefs({ accountName: v.trim() || null })} />
-        </Row>
+        {prefs.signedInAs ? (
+          <div className="divide-y divide-white/[0.06]">
+            <Row hint={t("signin.signedInHint")} label={t("signin.signedInAs", { name: prefs.signedInAs })}>
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={async () => {
+                  setStatus(await api.accountLogout());
+                }}
+              >
+                {t("signin.signOut")}
+              </Button>
+            </Row>
+            <Row hint={t("signin.autoHint")} label={t("signin.auto")}>
+              <Switch
+                aria-label={t("signin.auto")}
+                color="primary"
+                isSelected={prefs.autoLogin}
+                onValueChange={(v) => setPrefs({ autoLogin: v })}
+              />
+            </Row>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.06]">
+            <Row hint={t("signin.pitch")} label={t("signin.signInLabel")}>
+              <Button color="primary" size="sm" onPress={signIn.onOpen}>
+                {t("signin.submit")}
+              </Button>
+            </Row>
+            <Row hint={t("settings.accountHint")} label={t("settings.accountName")}>
+              <AccountName value={prefs.accountName ?? ""} onCommit={(v) => setPrefs({ accountName: v.trim() || null })} />
+            </Row>
+          </div>
+        )}
+        <SignInModal isOpen={signIn.isOpen} onClose={signIn.onClose} />
       </Card>
 
       <div className="grid grid-cols-2 gap-5 [&>section]:mb-5">

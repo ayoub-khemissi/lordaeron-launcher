@@ -13,6 +13,8 @@ export interface Prefs {
   downloadLimit: number; // bytes per second, 0 = no limit
   autoUpdate: boolean; // update as soon as the launcher opens, not only at Play
   accountName: string | null; // filled in on the game's login screen
+  signedInAs: string | null; // the account signed in to the launcher (its token is in Windows' credential manager)
+  autoLogin: boolean; // at Play, the game's login screen is filled with a one-time ticket
 }
 
 export interface GameInfo {

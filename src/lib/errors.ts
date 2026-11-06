@@ -20,6 +20,12 @@ const KNOWN = new Set([
   "tooMany",
   "messageTooShort",
   "reportFailed",
+  "invalidCredentials",
+  "totpRequired",
+  "totpInvalid",
+  "tooManyAttempts",
+  "tooManyAttemptsIp",
+  "signedOut",
 ]);
 
 // The backend's errors come as "code|detail" (crates/launcher-core/src/error.rs): the sentence is the player's

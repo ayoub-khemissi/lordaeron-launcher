@@ -18,6 +18,7 @@ interface Launcher {
   pause: () => Promise<void>;
   resume: () => Promise<boolean>;
   install: () => Promise<boolean>;
+  setStatus: (s: Status) => void;
   loadSettings: () => Promise<void>;
   writeSettings: (values: Record<string, string>) => void;
 }
@@ -182,7 +183,7 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 
   return (
     <Context.Provider
-      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, paused, pause, resume, install, loadSettings, writeSettings }}
+      value={{ status, error, progress, busy, settings, news, loadNews, refresh, setPrefs, play, paused, pause, resume, install, loadSettings, writeSettings, setStatus }}
     >
       {children}
     </Context.Provider>
