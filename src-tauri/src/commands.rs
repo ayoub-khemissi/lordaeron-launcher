@@ -400,10 +400,19 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         } else {
             game::set_account_name(&root, prefs.account_name.as_deref())?;
         }
-        let child = std::process::Command::new(root.join("Wow.exe"))
-            .current_dir(&root)
-            .spawn()
-            .map_err(|_| coded("cannotStart", ""))?;
+        // Lumenveil 0.7.1 logs in itself from the game's environment (auto_login.cpp): nothing typed, nothing on disk.
+        // Without it, the launcher types the ticket.
+        let in_game_login = lumenveil::installed(&root).is_some_and(|v| v >= Version([0, 7, 1, 0]));
+        let mut command = std::process::Command::new(root.join("Wow.exe"));
+        command.current_dir(&root);
+        if let (Some(t), Some(name)) = (&ticket, prefs.signed_in_as.as_ref()) {
+            let name = name.to_uppercase();
+            if in_game_login && !name.is_empty() && name.len() <= 32 && name.chars().all(|c| c.is_ascii_alphanumeric()) {
+                command.env("LORDAERON_AUTOLOGIN", format!("{name}\t{t}"));
+                ticket = None;
+            }
+        }
+        let child = command.spawn().map_err(|_| coded("cannotStart", ""))?;
         if let Some(ticket) = ticket {
             std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(2500)));
         }
