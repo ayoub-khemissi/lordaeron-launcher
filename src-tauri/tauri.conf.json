@@ -1,0 +1,81 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Lordaeron",
+  "version": "0.1.0",
+  "identifier": "eu.lordaeron.launcher",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Lordaeron",
+        "width": 1180,
+        "height": 720,
+        "minWidth": 1000,
+        "minHeight": 640,
+        "decorations": false,
+        "center": true,
+        "resizable": true,
+        "backgroundColor": "#050810",
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data: https://lordaeron.eu https://cdn.discordapp.com https://media.discordapp.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "createUpdaterArtifacts": true,
+    "publisher": "Lordaeron",
+    "homepage": "https://lordaeron.eu",
+    "copyright": "Lordaeron",
+    "shortDescription": "Lordaeron launcher",
+    "longDescription": "Plays on Lordaeron's realms: the right client patches, the realm list, the enhanced graphics (Lumenveil) and the news.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "languages": [
+          "English",
+          "French",
+          "German",
+          "Spanish",
+          "Italian",
+          "Polish",
+          "PortugueseBR",
+          "Russian"
+        ],
+        "displayLanguageSelector": false
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4Mjc0NzJFNzYwQ0U0MTEKUldRUjVBeDJMa2NubUZwME5meks3Q2djVVkyT3ppSW5YSlNHWC9yYldycVZhV0JKUDVtSDM5ZWsK",
+      "endpoints": [
+        "https://lordaeron.eu/patches/launcher/update.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+ "realmlist": "logon.lordaeron.eu",
+ "patchesUrl": "https://lordaeron.eu/patches/",
+ "lumenveil": {
+  "stable": "https://lordaeron.eu/patches/lumenveil/latest.json",
+  "test": "https://lordaeron.eu/patches/lumenveil/test.json"
+ },
+ "realms": [
+  {
+   "id": "lordaeron",
+   "name": "Lordaeron",
+   "tagline": {
+    "en": "Wrath of the Lich King, as it was, polished",
+    "fr": "Wrath of the Lich King, fidèle et peaufiné"
+   },
+   "patches": ["patch-Z.MPQ"],
+   "image": "realms/lordaeron.webp",
+   "accent": "gold"
+  },
+  {
+   "id": "rimeheart",
+   "name": "Rimeheart",
+   "tagline": {
+    "en": "WotLK+: new spells, items and a progressive world",
+    "fr": "WotLK+ : nouveaux sorts, objets et monde progressif"
+   },
+   "patches": ["patch-W.MPQ"],
+   "image": "realms/rimeheart.webp",
+   "accent": "ice"
+  }
+ ]
+}

@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import "@fontsource/lexend/300.css";
+@import "@fontsource/lexend/400.css";
+@import "@fontsource/lexend/500.css";
+@import "@fontsource/lexend/600.css";
+
+@plugin './hero.ts';
+
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Friz Quadrata";
+  src: url("/friz-quadrata.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* the site's palette (lordaeron-front/styles/globals.css) */
+@theme {
+  --font-sans: "Lexend", system-ui, sans-serif;
+  --font-heading: "Friz Quadrata", Georgia, serif;
+  --color-wow-gold: #c79c3e;
+  --color-wow-gold-light: #e0be6e;
+  --color-wow-gold-dark: #8a6b2a;
+  --color-wow-blue: #4fc3f7;
+  --color-wow-blue-ice: #7dd3fc;
+  --color-wow-dark: #0a0e14;
+  --color-wow-darker: #050810;
+  --color-wow-panel: #111827;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-wow-darker);
+  color: #e8e6e1;
+  font-family: var(--font-sans);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+textarea {
+  user-select: text;
+}
+
+.glass {
+  background: rgba(10, 14, 20, 0.72);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-gold {
+  background: linear-gradient(180deg, rgba(199, 156, 62, 0.14), rgba(199, 156, 62, 0.05));
+  border: 1px solid rgba(199, 156, 62, 0.35);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(180deg, #f3dc9a 0%, #c79c3e 55%, #8a6b2a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.play-button {
+  background: linear-gradient(180deg, #e9c66f 0%, #c79c3e 45%, #9a7429 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 160, 0.35) inset,
+    0 8px 30px rgba(199, 156, 62, 0.35);
+  color: #1a1206;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.4);
+}
+
+.play-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 160, 0.5) inset,
+    0 10px 40px rgba(199, 156, 62, 0.5);
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(199, 156, 62, 0.35) transparent;
+}
+
+/* HeroUI's overlay container sits between #root and the app */
+[data-overlay-container] {
+  height: 100%;
+}

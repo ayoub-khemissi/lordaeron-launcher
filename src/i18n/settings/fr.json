@@ -1,0 +1,654 @@
+{
+ "sections": {
+  "quality": "Qualité",
+  "density": "Brouillard",
+  "light": "Lumière",
+  "colour": "Couleurs",
+  "shafts": "Rayons du soleil et de la lune",
+  "drift": "Nappes et brumes",
+  "weather": "Météo",
+  "openLand": "Grands espaces",
+  "night": "Crépuscule et nuit",
+  "lantern": "Lanterne de ceinture",
+  "relief": "Relief",
+  "water": "Eau",
+  "wet": "Surfaces mouillées et brillantes",
+  "world": "Monde",
+  "debug": "Diagnostic",
+  "engine": "Moteur",
+  "hotkeys": "Touches",
+  "zones": "Zones"
+ },
+ "groups": {
+  "Ground": "Sol",
+  "Buildings": "Bâtiments",
+  "Nature": "Nature",
+  "Creatures and characters": "Créatures et personnages",
+  "Other": "Autres"
+ },
+ "settings": {
+  "Quality": {
+   "label": "Qualité du brouillard",
+   "help": "Finesse du brouillard volumétrique. Plus haut, c'est plus beau mais plus exigeant pour la carte graphique.",
+   "options": {
+    "1": "Basse : quart de résolution, 16 pas",
+    "2": "Moyenne : demi-résolution, 24 pas",
+    "3": "Haute : demi-résolution, 32 pas"
+   }
+  },
+  "Temporal": {
+   "label": "Lissage dans le temps",
+   "help": "Mélange chaque image avec les précédentes pour un brouillard sans grain. 0 = désactivé."
+  },
+  "Density": {
+   "label": "Densité du brouillard",
+   "help": "Quantité de brouillard partout dans le monde. 1 = la quantité prévue pour chaque zone."
+  },
+  "FogCeiling": {
+   "label": "Plafond du brouillard",
+   "help": "Quand vous volez ou vous tenez bien au-dessus du sol, le brouillard reste dans les premiers mètres au-dessus du sol : il remplit les vallées et les forêts, et l'air au-dessus reste clair (les rayons de soleil s'y voient toujours). Rien ne change à pied. 0 = désactivé."
+  },
+  "Haze": {
+   "label": "Voile lointain",
+   "help": "Voile au loin, là où le jeu ne fournit pas de brouillard Classic."
+  },
+  "GroundFog": {
+   "label": "Brume au sol",
+   "help": "Brume basse près du sol, là où le jeu ne fournit pas de brouillard Classic."
+  },
+  "FarFog": {
+   "label": "Brouillard lointain",
+   "help": "Le brouillard de distance qui remplace celui du jeu."
+  },
+  "FarFogStretch": {
+   "label": "Le brouillard suit la distance de vue",
+   "help": "1 : quand la distance de vue est augmentée, le brouillard lointain recule d'autant, pour que le relief au-delà ne soit pas une forme plate couleur brouillard. 0 : il s'arrête à la distance prévue par la zone."
+  },
+  "AerialPerspective": {
+   "label": "Perspective atmosphérique",
+   "help": "1 : le relief lointain se fond dans la couleur du brouillard de la zone et du ciel à l'horizon, et le soleil n'éclaircit le voile qu'autour de lui. 0 : le soleil éclaire le voile de tous côtés, ce qui pâlit les montagnes lointaines."
+  },
+  "StockFog": {
+   "label": "Remplacer le brouillard du jeu",
+   "help": "Activé : le brouillard volumétrique remplace le brouillard d'origine du jeu. Désactivé : le brouillard du jeu reste."
+  },
+  "DataMode": {
+   "label": "Couches de brouillard Classic",
+   "help": "Utilise les couches de brouillard de WoW Classic là où elles existent. Désactivé : des couches calculées partout."
+  },
+  "MaxDistance": {
+   "label": "Portée du brouillard",
+   "help": "Jusqu'où le brouillard du ciel est calculé, et l'échelle des courbes de distance Classic."
+  },
+  "SunScatter": {
+   "label": "Diffusion du soleil",
+   "help": "Lumière du soleil ou de la lune diffusée dans l'air : le halo autour de l'astre et les rayons."
+  },
+  "Ambient": {
+   "label": "Lumière ambiante",
+   "help": "Luminosité générale du brouillard."
+  },
+  "Exposure": {
+   "label": "Exposition",
+   "help": "Luminosité des couches de brouillard calculées, là où le jeu ne fournit pas de données Classic."
+  },
+  "ClassicExposure": {
+   "label": "Exposition Classic",
+   "help": "Luminosité des couches de brouillard Classic. 1 = telles que prévues."
+  },
+  "ColorSpace": {
+   "label": "Lumière linéaire",
+   "help": "Calcule la lumière comme les versions récentes du jeu, avec des hautes lumières douces. Nécessaire à plusieurs réglages de couleur. Désactivé : calcul classique (gamma)."
+  },
+  "LightShafts": {
+   "label": "Rayons de lumière",
+   "help": "Les arbres, bâtiments et reliefs découpent la lumière du soleil en rayons dans le brouillard."
+  },
+  "TerrainShadows": {
+   "label": "Ombre du relief dans le brouillard",
+   "help": "Les montagnes et bâtiments autour de vous privent le brouillard de soleil et de lune dans leur ombre, même hors de l'écran."
+  },
+  "SurfaceShadows": {
+   "label": "Ombres des montagnes",
+   "help": "Ombres des montagnes et des bâtiments sur le sol, les murs et les personnages, même quand la montagne est hors de l'écran. 1 = l'ombre retire toute la part du soleil, 0 = désactivé."
+  },
+  "LowSunLight": {
+   "label": "Lumière du soleil bas",
+   "help": "Quand le soleil est bas, les pentes et les murs tournés vers lui prennent une lumière chaude à sa couleur : la lumière se pose sur les montagnes au lever et au coucher. 1 = 35 % plus lumineux, 0 = désactivé."
+  },
+  "GodRays": {
+   "label": "Rayons divins",
+   "help": "Rayons qui partent du ciel lumineux autour du soleil. 0 = désactivé."
+  },
+  "GlowCompensation": {
+   "label": "Compensation de l'éclat",
+   "help": "Corrige d'avance l'effet d'éclat plein écran du jeu, qui sinon blanchit le brouillard lumineux autour du soleil."
+  },
+  "LightSaturation": {
+   "label": "Couleur de la lumière",
+   "help": "Couleur de la lumière du soleil ou de la lune dans le brouillard, les rayons et le voile, à luminosité égale. 1 = celle du jeu, 0 = blanche."
+  },
+  "HazeSaturation": {
+   "label": "Couleur du voile",
+   "help": "Couleur du brouillard éclairé par le ciel et du voile lointain, à luminosité égale. 1 = celle du jeu, 0 = gris, 2 = deux fois plus vive."
+  },
+  "Saturation": {
+   "label": "Saturation",
+   "help": "Intensité des couleurs de toute l'image, à luminosité égale. 1 = inchangée, 0 = noir et blanc. Nécessite « Lumière linéaire »."
+  },
+  "SkySaturation": {
+   "label": "Saturation du ciel",
+   "help": "Intensité des couleurs du ciel seul, en plus de la saturation. 1 = comme le reste de l'image, 0 = gris."
+  },
+  "Temperature": {
+   "label": "Température des couleurs",
+   "help": "Balance des blancs de toute l'image : au-dessus de 0 plus chaude (ambrée), en dessous plus froide (bleutée). Nécessite « Lumière linéaire »."
+  },
+  "Tint": {
+   "label": "Teinte",
+   "help": "Balance des blancs de toute l'image : au-dessus de 0 vers le magenta, en dessous vers le vert. Nécessite « Lumière linéaire »."
+  },
+  "SkyTemperature": {
+   "label": "Température du ciel",
+   "help": "Température des couleurs du ciel seul, en plus de la température générale. 0 = comme le reste de l'image."
+  },
+  "SkyTint": {
+   "label": "Teinte du ciel",
+   "help": "Teinte du ciel seul, en plus de la teinte générale. 0 = comme le reste de l'image."
+  },
+  "LightBalance": {
+   "label": "Neutralité de la lumière",
+   "help": "Balance des blancs du paysage face à la lumière du jeu. 0 = la couleur du jeu, 1 = une lumière neutre de même intensité, 2 = au-delà. Ni le ciel ni les intérieurs. Nécessite « Lumière linéaire »."
+  },
+  "LandBrightness": {
+   "label": "Luminosité du paysage",
+   "help": "Luminosité du paysage et de tout ce qui s'y trouve, sans le ciel. 1 = celle du jeu. Nécessite « Lumière linéaire »."
+  },
+  "SkyBrightness": {
+   "label": "Luminosité du ciel",
+   "help": "Luminosité du ciel seul. 1 = celle du jeu, 2 = deux fois plus lumineux. Nécessite « Lumière linéaire »."
+  },
+  "SkyHaze": {
+   "label": "Voile dans le ciel",
+   "help": "Part du ciel clair recouverte d'un voile à la couleur de l'horizon, comme la pluie le couvre par temps gris. 0 = le ciel du jeu, 1 = tout voilé."
+  },
+  "SkyHazeGlow": {
+   "label": "Soleil dans le voile",
+   "help": "Éclat du disque du soleil et de son halo à travers le voile du ciel, à la couleur du soleil."
+  },
+  "SkyHazeZenith": {
+   "label": "Voile au zénith",
+   "help": "Luminosité du voile juste au-dessus de vous par rapport à l'horizon. 1 = uniforme, 0,1 = une bande claire à l'horizon sous un ciel sombre."
+  },
+  "SkyHazeGlowGrade": {
+   "label": "Le soleil prend la couleur du ciel",
+   "help": "À quel point la lueur du soleil dans le voile prend la couleur, la luminosité et la saturation du ciel. 1 = entièrement, 0 = elle garde la couleur du soleil sous un ciel devenu froid ou gris."
+  },
+  "HazeFromSky": {
+   "label": "Le voile prend la couleur du ciel",
+   "help": "À quel point le voile devant le paysage prend la couleur du ciel à l'horizon. 1 = entièrement (un ciel clair donne des collines claires au loin, un ciel sombre des collines sombres), 0 = la couleur propre du voile."
+  },
+  "HazeSkyLevel": {
+   "label": "Voile face au ciel",
+   "help": "Luminosité de ce voile par rapport au ciel à l'horizon. 0,85 = un peu plus sombre, 1 = aussi lumineux. Le paysage garde un peu de sa propre lumière, la neige peut donc rester plus claire que le ciel."
+  },
+  "Shafts": {
+   "label": "Rayons de soleil",
+   "help": "Force des rayons de soleil dans le brouillard et l'air, découpés par les arbres, les bâtiments et le relief, même quand le soleil est hors de l'écran. 0 = seulement la lumière propre du brouillard."
+  },
+  "ShaftFocus": {
+   "label": "Concentration des rayons",
+   "help": "0 = rayons aussi visibles de tous côtés ; plus haut = plus lumineux face au soleil, plus discrets dos à lui."
+  },
+  "LowSunShafts": {
+   "label": "Rayons du soleil bas",
+   "help": "Rayons plus forts quand le soleil est bas. 1 = deux fois plus forts à l'aube et au crépuscule, jusqu'à 30° de hauteur ; 0 = pareil toute la journée."
+  },
+  "ShaftGlare": {
+   "label": "Éblouissement",
+   "help": "Jusqu'où la lumière des rayons peut monter avant de plafonner. Plus bas, le halo autour d'un soleil bas reste petit tandis que les rayons entre les arbres gardent leur force ; 4 = presque sans limite."
+  },
+  "MoonShafts": {
+   "label": "Rayons de lune",
+   "help": "Les mêmes rayons, la nuit, sous la lune. La lune est faible et haute dans le ciel, ils demandent donc plus de force que ceux du soleil. 0 = seulement la lumière propre du brouillard."
+  },
+  "MoonShaftFocus": {
+   "label": "Concentration des rayons de lune",
+   "help": "La lune est haute : une concentration basse garde ses rayons visibles quand on regarde à l'horizontale."
+  },
+  "ShaftHaze": {
+   "label": "Air éclairé",
+   "help": "L'air lui-même s'éclaire dans les rayons, pour qu'ils se voient même là où le brouillard est léger."
+  },
+  "ShaftRange": {
+   "label": "Portée des rayons",
+   "help": "Jusqu'à quelle distance de la caméra les rayons sont calculés. Plus bas = plus léger pour la carte graphique."
+  },
+  "ShaftMemory": {
+   "label": "Mémoire des rayons",
+   "help": "Les arbres et bâtiments déjà vus continuent d'ombrer les rayons même hors de l'écran : tourner la caméra ne change pas les rayons, et les trouées dans le feuillage restent ouvertes. Désactivé : seulement ce qui est à l'écran."
+  },
+  "ShaftLength": {
+   "label": "Longueur de recherche des rayons",
+   "help": "Jusqu'où chaque point cherche, vers le soleil, les arbres et bâtiments qui l'ombrent. Seulement sans la mémoire des rayons."
+  },
+  "ShaftDepth": {
+   "label": "Épaisseur des obstacles",
+   "help": "Épaisseur supposée des arbres et bâtiments derrière leur face visible, selon leur distance. Seulement sans la mémoire des rayons."
+  },
+  "Drift": {
+   "label": "Nappes de brouillard",
+   "help": "À quel point le brouillard forme des nappes. Elles dérivent avec le vent et les rayons s'illuminent dans les plus épaisses. 0 = brouillard uniforme."
+  },
+  "DriftSize": {
+   "label": "Taille des nappes",
+   "help": "Taille des nappes de brouillard qui dérivent."
+  },
+  "DriftDetail": {
+   "label": "Volutes",
+   "help": "Part de fines volutes de fumée dans les nappes. 0 = seulement les grandes nappes."
+  },
+  "DriftSwirl": {
+   "label": "Tourbillons",
+   "help": "À quel point les grandes nappes tordent et étirent les volutes. 0 = volutes droites."
+  },
+  "Banks": {
+   "label": "Bancs de brouillard",
+   "help": "Rassemble le brouillard en bancs séparés posés au sol, qui remplissent les vallées et laissent de l'air clair entre eux, au lieu de couches uniformes à votre hauteur.",
+   "options": {
+    "0": "Désactivés : couches uniformes",
+    "1": "Partout, toute la journée",
+    "2": "Vallées et eau, à l'aube et au crépuscule"
+   }
+  },
+  "BankCover": {
+   "label": "Couverture des bancs",
+   "help": "Part du sol sous un banc de brouillard ; moins il y a de bancs, plus ils sont denses, la quantité totale reste la même. 1 = une seule couche uniforme."
+  },
+  "BankHeight": {
+   "label": "Hauteur des bancs",
+   "help": "Jusqu'à quelle hauteur les bancs montent au-dessus du sol."
+  },
+  "BankPool": {
+   "label": "Brouillard dans les vallées",
+   "help": "À quel point le brouillard s'accumule dans les vallées et sur les lacs et dégage les crêtes et les sommets. 0 = pareil sur toutes les pentes."
+  },
+  "BankShadow": {
+   "label": "Ombre des bancs",
+   "help": "À quel point un banc s'ombre lui-même face au soleil ou à la lune, avec un côté éclairé et un côté sombre."
+  },
+  "WindSpeed": {
+   "label": "Vent",
+   "help": "Vitesse de dérive du brouillard par beau temps."
+  },
+  "StormWind": {
+   "label": "Vent de tempête",
+   "help": "Vitesse de dérive sous une forte pluie, neige ou tempête de sable ; une météo plus légère se situe entre les deux."
+  },
+  "WindDirection": {
+   "label": "Direction du vent",
+   "help": "Vers où souffle le vent : 0 nord, 90 est, 180 sud, 270 ouest."
+  },
+  "MorningMist": {
+   "label": "Brume du matin",
+   "help": "Brouillard en plus dans les creux à l'aube (au maximum de 5 h à 7 h 30, disparu à 10 h). 2 = trois fois plus de brouillard près du sol ; les zones peu brumeuses en reçoivent jusqu'à huit fois plus."
+  },
+  "MistHeight": {
+   "label": "Hauteur de la brume",
+   "help": "Jusqu'à quelle hauteur au-dessus de votre niveau la brume du matin monte."
+  },
+  "EveningHaze": {
+   "label": "Voile du soir",
+   "help": "Brouillard en plus partout le soir (au maximum de 20 h à 22 h, disparu à minuit)."
+  },
+  "WeatherFog": {
+   "label": "Brouillard par mauvais temps",
+   "help": "Brouillard en plus sous une forte pluie, neige ou tempête de sable. 1 = deux fois plus de brouillard."
+  },
+  "WeatherShafts": {
+   "label": "Rayons par mauvais temps",
+   "help": "Part des rayons qui restent par mauvais temps, quand les nuages cachent le soleil."
+  },
+  "WeatherTint": {
+   "label": "Couleur du mauvais temps",
+   "help": "Le brouillard devient gris sous la pluie, blanc sous la neige et ocre dans une tempête de sable."
+  },
+  "WeatherSky": {
+   "label": "Ciel couvert",
+   "help": "Le ciel et ses nuages prennent la couleur du brouillard du mauvais temps. 1 = 85 % par forte météo."
+  },
+  "RainInFront": {
+   "label": "Pluie au premier plan",
+   "help": "La pluie, la neige et le sable restent devant le brouillard et le ciel couvert, aussi près qu'ils tombent. 1 = comme à 25 m, 0 = comme aussi loin que ce qui est derrière."
+  },
+  "DustHaze": {
+   "label": "Voile de poussière",
+   "help": "Poussière chaude et ensoleillée dans l'air des zones arides, plus épaisse l'après-midi et dans le vent. 0 = désactivé."
+  },
+  "HumidHaze": {
+   "label": "Voile humide",
+   "help": "Un voile doux et frais sur les grandes étendues vertes, plus épais le matin. 0 = désactivé."
+  },
+  "HorizonFog": {
+   "label": "Brouillard à l'horizon",
+   "help": "Dans les zones arides et vertes, le relief lointain se fond peu à peu dans la couleur du ciel à l'horizon. 0 = le brouillard de distance de la zone."
+  },
+  "CloudShadows": {
+   "label": "Ombres des nuages",
+   "help": "Ombres des nuages qui passent avec le vent sur les zones arides et vertes, au sol et dans le voile ; avec un soleil bas, des rayons entre les nuages. 1 = un nuage retire toute la part du soleil, 0 = désactivé."
+  },
+  "CloudCover": {
+   "label": "Couverture nuageuse",
+   "help": "Part du ciel couverte de nuages. 1 = environ un quart dans les zones arides et près de la moitié dans les vertes, 90 % au plus."
+  },
+  "CloudSize": {
+   "label": "Taille des nuages",
+   "help": "Largeur d'un nuage, en mètres."
+  },
+  "Twilight": {
+   "label": "Crépuscule bleuté",
+   "help": "Teinte bleue du brouillard autour du coucher et du lever du soleil, quand le soleil est juste sous l'horizon et que la lune n'est pas levée."
+  },
+  "SkyboxMoons": {
+   "label": "Lunes des ciels HD",
+   "help": "Affiche les lunes peintes sur les ciels HD. Désactivé : seule la lune du jeu s'affiche, celle d'où viennent le clair de lune, ses rayons et ses reflets sur l'eau."
+  },
+  "SunAndMoon": {
+   "label": "Soleil et lune par-dessus le ciel",
+   "help": "Le soleil et la lune du jeu sont dessinés par-dessus le ciel, pour qu'un ciel HD ou le voile ne les cache pas ; le relief devant les cache toujours. 1 = comme le jeu les dessine, plus pâles dans le brouillard et la pluie ; 0 = laissés au jeu."
+  },
+  "LightGlow": {
+   "label": "Lueurs nocturnes",
+   "help": "Les lampes, fenêtres et feux rayonnent dans le brouillard la nuit ; plus le brouillard est épais, plus le halo est grand. 0 = désactivé."
+  },
+  "GlowThreshold": {
+   "label": "Seuil des lueurs",
+   "help": "À partir de quelle luminosité un point se met à rayonner ; plus bas = plus de choses rayonnent."
+  },
+  "LampFog": {
+   "label": "Halos des lampes",
+   "help": "Les torches, bougies, braseros et lanternes du monde rayonnent dans l'air, davantage sous la pluie, la neige ou le sable ; de jour selon le réglage « De jour » ; aucun dans le monde des esprits. 0 = désactivé."
+  },
+  "LampCount": {
+   "label": "Lampes",
+   "help": "Nombre de lampes visibles qui rayonnent et éclairent, les plus lumineuses d'abord. Moins de lampes = plus léger pour la carte graphique. Les lampes portent jusqu'à 800 m."
+  },
+  "LampFlicker": {
+   "label": "Vacillement",
+   "help": "À quel point les flammes vacillent ; les lanternes sous verre restent stables. 0 = immobiles."
+  },
+  "FireStrength": {
+   "label": "Feux",
+   "help": "Force des feux à l'air libre (braseros, feux de joie, feux de camp, âtres), leur lumière et leurs halos, par rapport aux autres lampes. 1 = comme les autres lampes."
+  },
+  "FarLights": {
+   "label": "Lumières lointaines",
+   "help": "La nuit, les lampes des villes et des camps au-delà de 60 m apparaissent comme de petits points de lumière, pour qu'une ville de l'autre côté d'une vallée ne soit pas noire. 0 = désactivé."
+  },
+  "LampIndoors": {
+   "label": "Lampes en intérieur",
+   "help": "Force des lampes dans les pièces (auberges, maisons, salles), et de toutes les lampes quand vous êtes à l'intérieur. 1 = comme dehors."
+  },
+  "LampLight": {
+   "label": "Lumière des lampes",
+   "help": "Les lampes éclairent le sol, les murs, les plantes et les personnages autour d'elles, à leur propre couleur ; de jour aussi, surtout à l'ombre ; jamais dans le monde des esprits. 0 = désactivé."
+  },
+  "LampDayLight": {
+   "label": "Lampes de jour",
+   "help": "Part de la lumière et des halos des lampes en journée, quand le soleil les éclipse. 0 = aucune de jour, 1 = comme la nuit."
+  },
+  "WindowLight": {
+   "label": "Lumière des fenêtres",
+   "help": "Les fenêtres éclairées projettent leur lumière sur la rue, les murs et les personnages devant elles, jusqu'à 8 fenêtres à la fois ; jamais de jour ni dans le monde des esprits. 0 = désactivé."
+  },
+  "EffectLight": {
+   "label": "Lumière des sorts",
+   "help": "Les sorts lumineux, projectiles, enchantements et autres effets brillants éclairent le sol, les murs et les personnages autour d'eux à leur couleur, jusqu'à 6 à la fois. Sous la pluie ou la neige, seules les lueurs colorées comptent. 0 = désactivé."
+  },
+  "ObjectLamps": {
+   "label": "Feux placés par le serveur",
+   "help": "Les feux de camp, braseros, bougies et torches placés par le serveur (feux de cuisine, camps, braseros des fêtes) éclairent et rayonnent comme les lampes du monde, là où ils se trouvent. Désactivé : ils ne donnent que la lumière des sorts."
+  },
+  "CorpseLight": {
+   "label": "Scintillement du butin",
+   "help": "Les cadavres à fouiller brillent d'un petit scintillement doré, les 4 plus proches à moins de 40 m. De jour selon le réglage « Lampes de jour » ; jamais dans le monde des esprits. 0 = désactivé."
+  },
+  "LampShadows": {
+   "label": "Ombres des lampes",
+   "help": "Ce qui se trouve entre une lampe et une surface bloque sa lumière. 0 = pas d'ombres des lampes."
+  },
+  "CarriedShadows": {
+   "label": "Ombres des lumières mobiles",
+   "help": "Part des ombres gardée par les lumières qui se déplacent : sorts, projectiles, enchantements, scintillement du butin et lanterne de ceinture. 0 = elles ne projettent pas d'ombre, aucune ombre de personnage ne tourne avec elles ; les lampes fixes gardent les leurs."
+  },
+  "NightDarkness": {
+   "label": "Obscurité de la nuit",
+   "help": "Assombrit le paysage sous la lune la nuit, en extérieur, sans toucher aux flammes, aux fenêtres et intérieurs éclairés ni à ce que les lampes éclairent. 0 = la nuit du jeu."
+  },
+  "Lantern": {
+   "label": "Lanterne",
+   "help": "Une lanterne à votre ceinture éclaire le sol, les murs, les plantes et les personnages autour de vous, et ce qui est dans sa lumière projette des ombres. « Dans le noir » : elle s'allume seule la nuit et à l'intérieur (grottes, donjons, bâtiments) et s'éteint le jour ; jamais à la nage ni en esprit.",
+   "options": {
+    "0": "Éteinte",
+    "1": "Dans le noir",
+    "2": "Toujours"
+   }
+  },
+  "LanternLight": {
+   "label": "Lumière de la lanterne",
+   "help": "Force de la lumière de la lanterne autour de vous. 0 = pas de lanterne."
+  },
+  "LanternHalo": {
+   "label": "Halo de la lanterne",
+   "help": "Force du halo de la lanterne dans le brouillard, en plus des halos des lampes. 0 = pas de halo."
+  },
+  "LanternSwing": {
+   "label": "Balancement de la lanterne",
+   "help": "À quel point la lanterne se balance quand vous marchez, courez, tournez et vous arrêtez. 0 = elle pend immobile."
+  },
+  "Relief": {
+   "label": "Relief du sol",
+   "help": "Les routes pavées, dalles, pierres et rochers du sol prennent du relief : ils bougent avec le regard, accrochent la lumière côté soleil et s'ombrent eux-mêmes. Nécessite des ombres extérieures de qualité 3 à 5 dans le jeu."
+  },
+  "ReliefModels": {
+   "label": "Relief sur les modèles",
+   "help": "Les arbres, créatures, personnages, armures et objets prennent aussi du relief. Il est préparé pendant que vous jouez, la première fois que chaque texture s'affiche."
+  },
+  "ReliefDepth": {
+   "label": "Profondeur du relief",
+   "help": "Profondeur maximale du relief, pour la pierre et les pavés ; chaque type de texture en reçoit sa part (voir plus bas)."
+  },
+  "ReliefLight": {
+   "label": "Lumière sur le relief",
+   "help": "À quel point le relief façonne la lumière (côté éclairé, côté ombre). 0 = profondeur seule."
+  },
+  "ReliefShadows": {
+   "label": "Ombres du relief",
+   "help": "Noirceur des ombres que les pierres et les arêtes projettent sur leur propre texture."
+  },
+  "ReliefDistance": {
+   "label": "Distance du relief",
+   "help": "Le relief s'affiche jusqu'à cette distance et s'estompe sur son dernier quart."
+  },
+  "ReliefRoads": { "label": "Routes", "help": "Routes, dallages, pavés et sols pavés, dehors et dans les bâtiments." },
+  "ReliefRock": { "label": "Roche", "help": "Roche, falaises, gravier, rochers et grottes." },
+  "ReliefDirt": { "label": "Terre", "help": "Terre, boue, cendre et sols d'aucun autre type." },
+  "ReliefSand": { "label": "Sable", "help": "Sable, dunes et plages." },
+  "ReliefSnow": { "label": "Neige", "help": "Neige et glace." },
+  "ReliefGrass": { "label": "Herbe", "help": "Herbe, mousse, feuilles mortes et cultures au sol." },
+  "ReliefWalls": { "label": "Murs", "help": "Murs de pierre, de brique et d'enduit, moulures, piliers, plafonds et encadrements." },
+  "ReliefRoofs": { "label": "Toits", "help": "Toits : bardeaux, tuiles et chaume." },
+  "ReliefWood": { "label": "Bois", "help": "Planches, poutres, murs et sols en bois, clôtures, caisses et tonneaux." },
+  "ReliefMetal": { "label": "Métal", "help": "Métal et fer, chaînes, tuyaux et machines." },
+  "ReliefBark": { "label": "Écorce", "help": "Troncs, branches, racines et bûches." },
+  "ReliefLeaves": { "label": "Feuillage", "help": "Feuilles, buissons, plantes et fleurs." },
+  "ReliefCreatures": { "label": "Créatures", "help": "Créatures : fourrure, cuir et écailles." },
+  "ReliefCharacters": { "label": "Personnages", "help": "Les personnages et l'armure qu'ils portent sur le corps." },
+  "ReliefArmour": { "label": "Armures", "help": "Casques, épaulières, armes et boucliers." },
+  "ReliefProps": { "label": "Objets", "help": "Objets : tissus, bannières, lampes, panneaux et tout le reste." },
+  "WaterReflect": {
+   "label": "Reflets sur l'eau",
+   "help": "L'eau reflète le ciel, les rives, les arbres et les bâtiments ; forts quand on regarde au loin sur l'eau, faibles quand on regarde dedans. 0 = désactivé."
+  },
+  "WaterGlitter": {
+   "label": "Scintillement de l'eau",
+   "help": "Chemin scintillant du soleil, et de la lune la nuit, sur les vagues ; moins sous les nuages. 0 = désactivé."
+  },
+  "WaterClarity": {
+   "label": "Transparence de l'eau",
+   "help": "On voit le fond à travers l'eau peu profonde, et un bleu-vert plus profond là où l'eau devient profonde. 0 = la couleur d'eau du jeu."
+  },
+  "WaterSmooth": {
+   "label": "Eau lisse",
+   "help": "La texture animée de l'eau du jeu est remplacée par les couleurs d'eau de la zone, des hauts-fonds aux profondeurs, pour une surface lisse où jouent les vagues et les reflets. 0 = la texture du jeu."
+  },
+  "WaterBump": {
+   "label": "Ondulations",
+   "help": "De fines ondulations dérivent avec le vent sur les vagues et déforment les reflets. 0 = désactivé."
+  },
+  "WaterFoam": {
+   "label": "Écume",
+   "help": "De l'écume là où l'eau est peu profonde le long des rives, qui dérive avec le vent. 0 = désactivé."
+  },
+  "WaterWaves": {
+   "label": "Vagues",
+   "help": "Petites vagues qui brisent les reflets et le scintillement ; plus hautes sous la pluie, la neige ou le sable. 0 = un miroir immobile."
+  },
+  "WaterRain": {
+   "label": "Ronds de pluie",
+   "help": "Force des ronds que font les gouttes sur l'eau quand il pleut ; leur nombre suit la pluie. Au loin, ils rident l'eau. 0 = désactivé."
+  },
+  "WaterMemory": {
+   "label": "Mémoire des reflets",
+   "help": "Les reflets de ce qui est sorti de l'écran viennent d'un panorama de tout ce qui a été vu d'ici : tourner la caméra ne les fait ni apparaître ni disparaître d'un coup. Désactivé : seulement ce qui est à l'écran."
+  },
+  "SurfaceSheen": {
+   "label": "Brillance des surfaces",
+   "help": "La pierre, les pavés, la roche, la glace et les surfaces lisses accrochent le soleil, la lune et les lampes quand on les regarde vers la lumière, surtout sous un soleil bas ; la neige scintille ; l'herbe, la terre et le sable restent mats. 0 = désactivé."
+  },
+  "WetSurfaces": {
+   "label": "Mouillé sous la pluie",
+   "help": "La pluie mouille ce qui est à ciel ouvert en une minute environ, chaque sol à sa manière : la pierre devient brillante, la terre et le sable foncent, l'herbe se couvre de gouttes. Tout sèche en quelques minutes après la pluie. Rien sous les toits. 0 = jamais mouillé."
+  },
+  "Puddles": {
+   "label": "Flaques",
+   "help": "Part du sol plat à ciel ouvert où se forment des flaques sous une pluie continue : des miroirs qui se remplissent en une minute ou deux et durent plus longtemps que le sol mouillé. Jamais sur l'herbe ni la neige. 0 = pas de flaques."
+  },
+  "TerrainMaterials": {
+   "label": "Matières du sol",
+   "help": "Reconnaît la matière du sol d'après sa texture : herbe, terre, pierre, sable, neige, glace, bois ou lave. Désactivé : chaque surface est jugée à sa couleur. Nécessite des ombres extérieures de qualité 3 ou plus dans le jeu."
+  },
+  "Underwater": {
+   "label": "Brouillard sous l'eau",
+   "help": "Garde l'effet quand la caméra est sous l'eau."
+  },
+  "LiquidDepth": {
+   "label": "Profondeur de l'eau",
+   "help": "Les surfaces d'eau prennent le brouillard selon leur propre distance. Nécessaire aux reflets et aux effets de l'eau."
+  },
+  "FarClipMax": {
+   "label": "Distance de vue",
+   "help": "Le jeu limite la vue sur les continents à 791 m ; Lumenveil permet jusqu'à 1583 m. Plus loin, c'est plus beau mais beaucoup plus exigeant. L'activer alors qu'elle était désactivée au lancement nécessite de relancer le jeu."
+  },
+  "DebugView": {
+   "label": "Vue de diagnostic",
+   "help": "Affiche une donnée du brouillard à la place de l'image.",
+   "options": {
+    "0": "Désactivée",
+    "1": "Lumière du brouillard",
+    "2": "Transmittance",
+    "3": "Profondeur linéaire",
+    "4": "Ombres des surfaces",
+    "5": "Halos des lampes",
+    "6": "Lumière des lampes sur les surfaces",
+    "7": "Cartes d'ombres du jeu (récepteurs)",
+    "8": "Cartes d'ombres du jeu (projecteurs)"
+   }
+  },
+  "SunMarker": {
+   "label": "Repère du soleil",
+   "help": "Un repère rouge là où la direction du soleil tombe à l'écran."
+  },
+  "ClientShadowMaps": {
+   "label": "Cartes d'ombres du jeu",
+   "help": "Repère à chaque image les cartes d'ombres du soleil du jeu et les décrit dans CoAVolFog.log."
+  },
+  "LogLevel": {
+   "label": "Niveau du journal",
+   "help": "Quantité de détails écrits dans CoAVolFog.log.",
+   "options": {
+    "0": "Erreurs",
+    "1": "Informations",
+    "2": "Détaillé"
+   }
+  },
+  "DrawLog": {
+   "label": "Journal des dessins",
+   "help": "Pour la recherche : 1 = la touche du journal des dessins enregistre la prochaine image dans CoAVolFog-draws.csv ; 2 = une fois à chaque relecture du fichier de réglages ; 0 = désactivé."
+  },
+  "PerfLog": {
+   "label": "Journal des performances",
+   "help": "Écrit toutes les 60 secondes dans le journal le temps que prend chaque partie de l'effet. Utile pour signaler un ralentissement."
+  },
+  "DrawLogVertexConstants": {
+   "label": "Constantes de sommets du journal",
+   "help": "Constantes de shader dont le journal des dessins écrit les valeurs, sous la forme c2-5,c37-48 (none = aucune). Vide = les valeurs par défaut."
+  },
+  "DrawLogPixelConstants": {
+   "label": "Constantes de pixels du journal",
+   "help": "Constantes de shader dont le journal des dessins écrit les valeurs, sous la forme c2-5,c37-48 (none = aucune). Vide = les valeurs par défaut."
+  },
+  "Enable": {
+   "label": "Lumenveil",
+   "help": "Désactivé : le jeu s'affiche comme sans Lumenveil, qui reste installé. Prend effet au prochain lancement du jeu."
+  },
+  "EngineHooks": {
+   "label": "Accès au moteur du jeu",
+   "help": "Ce qui donne les lampes, l'eau, le relief, les ombres et la distance de vue étendue. Désactivé : seulement le brouillard. Prend effet au prochain lancement du jeu."
+  },
+  "Overlay": {
+   "label": "Fenêtre de réglages en jeu",
+   "help": "La fenêtre de réglages en jeu et les touches ci-dessous. La réactiver nécessite de relancer le jeu."
+  },
+  "OverlayKey": {
+   "label": "Réglages en jeu",
+   "help": "Affiche et masque la fenêtre de réglages en jeu."
+  },
+  "ToggleKey": {
+   "label": "Comparer avec le jeu d'origine",
+   "help": "Désactive et réactive tout Lumenveil en jouant, pour comparer avec le jeu d'origine. Jamais enregistré."
+  },
+  "LanternKey": {
+   "label": "Lanterne de ceinture",
+   "help": "Allume ou éteint la lanterne de ceinture, et s'en souvient."
+  },
+  "ReliefKey": {
+   "label": "Relief du sol",
+   "help": "Active ou désactive le relief du sol, et s'en souvient."
+  },
+  "SpotKey": {
+   "label": "Signaler un endroit",
+   "help": "Note votre position, l'heure et la météo dans CoAVolFog-spots.txt, pour signaler un endroit qui s'affiche mal."
+  },
+  "RegionKey": {
+   "label": "Ambiances par zone",
+   "help": "Affiche et masque la fenêtre des ambiances gardées pour chaque zone."
+  },
+  "DrawLogKey": {
+   "label": "Journal des dessins",
+   "help": "Enregistre les appels de dessin d'une image dans le journal, pour le diagnostic."
+  },
+  "ZoneDensity": {
+   "label": "Densité par zone",
+   "help": "Densité propre à certaines zones : le numéro de la zone et un multiplicateur de la densité, séparés par des virgules (148:0.5,490:0.7). Plus simple en jeu : la fenêtre de réglages règle la zone où vous êtes."
+  },
+  "DryZones": {
+   "label": "Zones arides",
+   "help": "Les zones qui comptent comme arides (voile de poussière, nuages épars), par numéro de zone, séparées par des virgules."
+  },
+  "GreenZones": {
+   "label": "Zones vertes",
+   "help": "Les zones qui comptent comme vertes (voile humide, plus de nuages), par numéro de zone, séparées par des virgules."
+  }
+ }
+}
