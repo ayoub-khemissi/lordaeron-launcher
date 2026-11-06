@@ -405,11 +405,11 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         let in_game_login = lumenveil::installed(&root).is_some_and(|v| v >= Version([0, 7, 1, 0]));
         let mut command = std::process::Command::new(root.join("Wow.exe"));
         command.current_dir(&root);
-        if let (Some(t), Some(name)) = (&ticket, prefs.signed_in_as.as_ref()) {
-            let name = name.to_uppercase();
-            if in_game_login && !name.is_empty() && name.len() <= 32 && name.chars().all(|c| c.is_ascii_alphanumeric()) {
+        let name = prefs.signed_in_as.clone().unwrap_or_default().to_uppercase();
+        let name_ok = !name.is_empty() && name.len() <= 32 && name.chars().all(|c| c.is_ascii_alphanumeric());
+        if in_game_login && name_ok {
+            if let Some(t) = ticket.take() {
                 command.env("LORDAERON_AUTOLOGIN", format!("{name}\t{t}"));
-                ticket = None;
             }
         }
         let child = command.spawn().map_err(|_| coded("cannotStart", ""))?;
