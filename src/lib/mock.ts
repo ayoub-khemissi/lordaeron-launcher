@@ -88,6 +88,10 @@ function status(): Status {
             ? [{ kind: "lumenveil" as const, name: "Lumenveil", size: 1_400_000, from: installed, to: "0.7.0" }]
             : []),
         ],
+    patches: [
+      { name: "patch-W.MPQ", realms: ["Rimeheart"], state: prefs.realm === "rimeheart" ? "active" : "aside", version: "2026-11-06 06:01", size: 24_895_251 },
+      { name: "patch-Z.MPQ", realms: ["Lordaeron"], state: prefs.realm === "lordaeron" ? "active" : "aside", version: "2026-10-19 06:04", size: 191_584 },
+    ],
     running: false,
     launcherVersion: "0.1.0",
   };

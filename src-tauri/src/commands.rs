@@ -56,6 +56,7 @@ pub struct Status {
     feed: LauncherFeed,
     lumenveil: LumenveilStatus,
     pending: Vec<PendingItem>,
+    patches: Vec<plan::PatchState>,
     running: bool,
     launcher_version: String,
 }
@@ -119,6 +120,10 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
         .and_then(|r| lumenveil::read_settings(r).ok())
         .map(|v| v.get("Enable").map_or(true, |e| e.trim() != "0"))
         .unwrap_or(false);
+    let patches = match (&root, &game) {
+        (Some(root), Some(g)) if g.ok => plan::patch_states(root, &feeds.launcher, feeds.manifest.as_ref()),
+        _ => Vec::new(),
+    };
     Status {
         game,
         online: feeds.online,
@@ -130,6 +135,7 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
             held: root.as_deref().and_then(lumenveil::held).is_some(),
         },
         pending,
+        patches,
         running: state.is_running(),
         launcher_version: app.package_info().version.to_string(),
         prefs,
@@ -313,6 +319,9 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
     }
     if patches_changed {
         game::clear_cache(&root);
+    }
+    if !manifest.is_empty() {
+        plan::clean(&root, &manifest);
     }
     if lumenveil::installed(&root).is_some() {
         let mut values: Vec<(String, String)> = vec![("Enable".into(), if prefs.lumenveil { "1" } else { "0" }.into())];

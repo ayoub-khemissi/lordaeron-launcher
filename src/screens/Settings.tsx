@@ -14,10 +14,10 @@ import {
   Switch,
   useDisclosure,
 } from "@heroui/react";
-import { CheckCircle2, Download, FileText, FolderOpen, Globe, History, Info, Layers, MessageCircle, RefreshCw, Rocket, Trash2, UserRound, Wrench, XCircle } from "lucide-react";
+import { CheckCircle2, Download, FileText, FolderOpen, Globe, History, Info, Layers, MessageCircle, Package, RefreshCw, Rocket, Trash2, UserRound, Wrench, XCircle } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { PageHeader } from "../components/PageHeader";
+import { PageHeader, Pill } from "../components/PageHeader";
 import { LANGUAGES, useI18n } from "../i18n";
 import { api, launcherUpdate } from "../lib/api";
 import { errorText } from "../lib/errors";
@@ -126,6 +126,24 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
           </Select>
         </Card>
       </div>
+
+      <Card icon={<Package size={18} />} title={t("settings.patches")}>
+        <p className="mb-3 text-[12.5px] text-white/45">{t("settings.patchesHint")}</p>
+        <div className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.08] bg-black/20">
+          {status.patches.map((p) => (
+            <div key={p.name} className="flex items-center gap-4 px-4 py-3">
+              <span className="w-28 shrink-0 font-mono text-[13px] text-white/90">{p.name}</span>
+              <span className="min-w-0 flex-1 truncate text-[12.5px] text-white/50">
+                {p.realms.join(", ")}
+                {p.version && <span className="text-white/30"> · {p.version}</span>}
+              </span>
+              <Pill tone={p.state === "active" ? "success" : p.state === "aside" ? "neutral" : "warning"}>
+                {t(`settings.patch.${p.state}` as "settings.patch.active")}
+              </Pill>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card icon={<Download size={18} />} title={t("settings.downloads")}>
         <div className="divide-y divide-white/[0.06]">

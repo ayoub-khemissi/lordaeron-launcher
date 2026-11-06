@@ -64,8 +64,17 @@ export interface Status {
   feed: LauncherFeed | null;
   lumenveil: { installed: string | null; available: LumenveilFeed | null; enabled: boolean; held: boolean };
   pending: PendingItem[]; // what Play would download or redo first
+  patches: PatchState[];
   running: boolean; // Wow.exe from this folder is running
   launcherVersion: string;
+}
+
+export interface PatchState {
+  name: string;
+  realms: string[];
+  state: "active" | "aside" | "outdated" | "missing";
+  version: string | null;
+  size: number;
 }
 
 export interface PendingItem {

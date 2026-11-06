@@ -48,6 +48,70 @@ fn current(path: &Path, manifest: &Manifest, name: &str) -> bool {
     }
 }
 
+/// A managed patch as the player's folder has it, for the Settings card.
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchState {
+    pub name: String,
+    pub realms: Vec<String>, // the realms that use it
+    pub state: &'static str, // active, aside, outdated (here or aside, not the manifest's), missing
+    pub version: Option<String>, // the manifest's
+    pub size: u64,
+}
+
+pub fn patch_states(root: &Path, feed: &LauncherFeed, manifest: Option<&Manifest>) -> Vec<PatchState> {
+    let empty = Manifest::new();
+    let m = manifest.unwrap_or(&empty);
+    feed.managed_patches()
+        .into_iter()
+        .map(|name| {
+            let here = root.join("Data").join(&name);
+            let aside = aside_dir(root).join(&name);
+            let state = if here.is_file() {
+                if manifest.is_none() || current(&here, m, &name) { "active" } else { "outdated" }
+            } else if aside.is_file() {
+                if manifest.is_none() || current(&aside, m, &name) { "aside" } else { "outdated" }
+            } else {
+                "missing"
+            };
+            PatchState {
+                realms: feed.realms.iter().filter(|r| r.patches.contains(&name)).map(|r| r.name.clone()).collect(),
+                version: m.get(&name).map(|e| e.version.clone()),
+                size: m.get(&name).map_or(0, |e| e.size),
+                state,
+                name,
+            }
+        })
+        .collect()
+}
+
+/// Keeps the player's disk clean: a patch set aside that is no longer the published one is of no use (the next
+/// switch downloads the new one), nor is a download left unfinished for a week.
+pub fn clean(root: &Path, manifest: &Manifest) {
+    if let Ok(entries) = fs::read_dir(aside_dir(root)) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if manifest.contains_key(&name) && !current(&entry.path(), manifest, &name) {
+                let _ = fs::remove_file(entry.path());
+            }
+        }
+    }
+    let week = std::time::Duration::from_secs(7 * 24 * 3600);
+    if let Ok(entries) = fs::read_dir(lumenveil::own(root).join("download")) {
+        for entry in entries.flatten() {
+            let old = entry
+                .metadata()
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.elapsed().ok())
+                .is_some_and(|age| age > week);
+            if old {
+                let _ = fs::remove_file(entry.path());
+            }
+        }
+    }
+}
+
 pub struct PlanInput<'a> {
     pub root: &'a Path,
     pub feed: &'a LauncherFeed,
@@ -162,5 +226,13 @@ mod tests {
         let kinds: Vec<&str> = plan(&input).into_iter().map(|p| p.kind).collect();
         assert!(kinds.contains(&"patchBack"));
         assert!(!kinds.contains(&"patch"));
+        let states = patch_states(root, &f, Some(&m));
+        assert_eq!(states.iter().find(|p| p.name == "patch-W.MPQ").unwrap().state, "aside");
+        assert_eq!(states.iter().find(|p| p.name == "patch-Z.MPQ").unwrap().state, "active");
+
+        // a newer patch-W is published: the copy aside is stale, and goes
+        let newer = manifest(&hex::encode(Sha256::digest(b"w2")));
+        clean(root, &newer);
+        assert!(!aside_dir(root).join("patch-W.MPQ").exists());
     }
 }
