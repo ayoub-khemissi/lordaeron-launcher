@@ -112,9 +112,9 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
         SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, VK_RETURN,
     };
+    use windows_sys::Win32::System::Threading::WaitForInputIdle;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         EnumWindows, GetForegroundWindow, GetWindowThreadProcessId, IsWindowVisible, SetForegroundWindow,
-        WaitForInputIdle,
     };
 
     struct Search {
