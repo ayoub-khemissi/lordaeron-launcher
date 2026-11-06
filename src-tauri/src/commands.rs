@@ -405,7 +405,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
             .spawn()
             .map_err(|_| coded("cannotStart", ""))?;
         if let Some(ticket) = ticket {
-            std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(3500)));
+            std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(4500)));
         }
         state.log("game started");
         state.running.store(true, Ordering::SeqCst);

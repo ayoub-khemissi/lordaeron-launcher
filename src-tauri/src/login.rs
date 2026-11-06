@@ -110,7 +110,8 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
     use std::os::windows::io::AsRawHandle;
     use windows_sys::Win32::Foundation::{BOOL, HWND, LPARAM};
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, VK_RETURN,
+        GetKeyboardLayout, MapVirtualKeyExW, SendInput, VkKeyScanExW, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT,
+        KEYEVENTF_KEYUP, MAPVK_VK_TO_VSC, VK_RETURN, VK_SHIFT,
     };
     use windows_sys::Win32::System::Threading::WaitForInputIdle;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
@@ -151,13 +152,16 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
             std::thread::sleep(Duration::from_millis(300));
         }
     }
-    let key = |scan: u16, vk: u16, up: bool| INPUT {
+    // real key presses (the game's edit boxes take them as typed), in the layout of the game's keyboard: a letter's key
+    // differs between QWERTY and AZERTY, and the ticket has letters only, typed lowercase (the game uppercases it)
+    let layout = unsafe { GetKeyboardLayout(GetWindowThreadProcessId(hwnd, std::ptr::null_mut())) };
+    let press = |vk: u16, up: bool| INPUT {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {
             ki: KEYBDINPUT {
                 wVk: vk,
-                wScan: scan,
-                dwFlags: (if vk == 0 { KEYEVENTF_UNICODE } else { 0 }) | (if up { KEYEVENTF_KEYUP } else { 0 }),
+                wScan: unsafe { MapVirtualKeyExW(vk as u32, MAPVK_VK_TO_VSC, layout) } as u16,
+                dwFlags: if up { KEYEVENTF_KEYUP } else { 0 },
                 time: 0,
                 dwExtraInfo: 0,
             },
@@ -166,15 +170,25 @@ pub fn type_ticket(child: &std::process::Child, ticket: &str, settle: Duration) 
     let send = |inputs: &[INPUT]| unsafe {
         SendInput(inputs.len() as u32, inputs.as_ptr(), std::mem::size_of::<INPUT>() as i32);
     };
-    for ch in ticket.chars() {
+    for ch in ticket.to_lowercase().chars() {
         if started.elapsed() > deadline || unsafe { GetForegroundWindow() } != hwnd {
             return; // the player went to another window: nothing is typed there
         }
-        send(&[key(ch as u16, 0, false), key(ch as u16, 0, true)]);
-        std::thread::sleep(Duration::from_millis(15));
+        let scan = unsafe { VkKeyScanExW(ch as u16, layout) };
+        if scan == -1 {
+            return;
+        }
+        let vk = (scan & 0xFF) as u16;
+        // a character behind Shift in this layout (a digit on AZERTY) is typed with it
+        if (scan >> 8) & 1 != 0 {
+            send(&[press(VK_SHIFT, false), press(vk, false), press(vk, true), press(VK_SHIFT, true)]);
+        } else {
+            send(&[press(vk, false), press(vk, true)]);
+        }
+        std::thread::sleep(Duration::from_millis(20));
     }
     if unsafe { GetForegroundWindow() } == hwnd {
-        send(&[key(0, VK_RETURN, false), key(0, VK_RETURN, true)]);
+        send(&[press(VK_RETURN, false), press(VK_RETURN, true)]);
     }
 }
 
