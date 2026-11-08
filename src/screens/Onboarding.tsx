@@ -25,14 +25,21 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   const [preset, setPreset] = useState(status?.prefs.pendingPreset ?? "ultra");
   const realms = (status?.feed?.realms ?? []).filter((r) => !r.hidden);
   const returning = Boolean(status?.prefs.gameDir);
+  // changing the folder later from Settings (or a folder gone): only that step
+  const steps = returning ? (["game"] as const) : STEPS;
+  const current = steps[Math.min(step, steps.length - 1)];
 
   useEffect(() => {
-    if (STEPS[step] !== "game" || games) return;
-    api.findGames().then((found) => {
-      setGames(found);
-      if (!game) setGame(found.find((g) => g.ok) ?? null);
-    });
-  }, [step, games, game]);
+    if (current !== "game" || games) return;
+    api
+      .findGames()
+      .then((found) => {
+        setGames(found);
+        if (!game) setGame(found.find((g) => g.ok) ?? null);
+      })
+      // a failed search still ends: the list stays empty and Browse remains
+      .catch(() => setGames([]));
+  }, [current, games, game]);
 
   const browse = async () => {
     const path = await pickFolder();
@@ -50,9 +57,6 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     play(false);
   };
 
-  // changing the folder later from Settings: only that step
-  const steps = returning ? (["game"] as const) : STEPS;
-  const current = steps[Math.min(step, steps.length - 1)];
   const last = step === steps.length - 1;
   const canNext = current !== "game" || game?.ok;
 
