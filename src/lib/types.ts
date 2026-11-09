@@ -13,9 +13,10 @@ export interface Prefs {
   downloadLimit: number; // bytes per second, 0 = no limit
   autoUpdate: boolean; // update as soon as the launcher opens, not only at Play
   accountName: string | null; // filled in on the game's login screen
-  signedInAs: string | null; // the account signed in to the launcher (its token is in Windows' credential manager)
+  signedInAs: string | null; // the account signed in to the launcher (its token is in the system's credential store)
   autoLogin: boolean; // at Play, the game's login screen is filled with a one-time ticket
   security: number | null; // the signed-in account's level: the team's realms show from 1
+  startWith: string | null; // on a Mac, the app that starts the game when the launcher cannot tell it
 }
 
 export interface GameInfo {
@@ -82,6 +83,7 @@ export interface Status {
   patches: PatchState[];
   running: boolean; // Wow.exe from this folder is running
   launcherVersion: string;
+  platform: string; // "windows" or "macos"
 }
 
 export interface PatchState {

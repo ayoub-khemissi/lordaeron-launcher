@@ -7,12 +7,14 @@ import { CompareGallery } from "../components/CompareSlider";
 import { PresetCard } from "../components/PresetCard";
 import { LANGUAGES, systemLanguage, useI18n } from "../i18n";
 import { api, pickFolder } from "../lib/api";
+import { isMac } from "../lib/platform";
 import { useLauncher } from "../lib/store";
 import type { GameInfo } from "../lib/types";
 
 import { gameProblemText } from "./Settings";
 
-const STEPS = ["welcome", "game", "realm", "graphics"] as const;
+// on a Mac, no enhanced graphics (Lumenveil is Windows')
+const STEPS = isMac ? (["welcome", "game", "realm"] as const) : (["welcome", "game", "realm", "graphics"] as const);
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const { t, language } = useI18n();
@@ -21,7 +23,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   const [games, setGames] = useState<GameInfo[] | null>(null);
   const [game, setGame] = useState<GameInfo | null>(status?.game?.ok ? status.game : null);
   const [realm, setRealm] = useState(status?.prefs.realm ?? "lordaeron");
-  const [graphics, setGraphics] = useState(status?.prefs.lumenveil ?? true);
+  const [graphics, setGraphics] = useState(!isMac && (status?.prefs.lumenveil ?? true));
   const [preset, setPreset] = useState(status?.prefs.pendingPreset ?? "ultra");
   const realms = (status?.feed?.realms ?? []).filter((r) => !r.hidden);
   const returning = Boolean(status?.prefs.gameDir);

@@ -21,6 +21,7 @@ const prefs: Prefs = {
   signedInAs: new URLSearchParams(location.search).has("signed") ? "THRALL" : null,
   autoLogin: true,
   security: null,
+  startWith: null,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [
@@ -100,6 +101,7 @@ function status(): Status {
     ],
     running: false,
     launcherVersion: "0.1.20",
+    platform: "windows",
   };
 }
 

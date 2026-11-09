@@ -1,6 +1,7 @@
 import { BookOpen, LayoutGrid, Newspaper, Play, Settings, ShoppingBag, Sparkles } from "lucide-react";
 
 import { useI18n } from "../i18n";
+import { isMac } from "../lib/platform";
 import { useLauncher } from "../lib/store";
 
 export type Screen = "play" | "news" | "graphics" | "shop" | "tools" | "guide" | "settings";
@@ -21,7 +22,7 @@ export function Sidebar({ screen, onScreen }: { screen: Screen; onScreen: (s: Sc
 
   return (
     <nav className="thin-scroll flex w-[92px] shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-white/5 bg-black/30 py-3">
-      {ITEMS.map(({ id, icon: Icon, label }) => {
+      {ITEMS.filter(({ id }) => !(isMac && (id === "graphics" || id === "guide"))).map(({ id, icon: Icon, label }) => {
         const active = screen === id;
 
         return (

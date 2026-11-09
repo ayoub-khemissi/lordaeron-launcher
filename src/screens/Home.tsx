@@ -10,6 +10,7 @@ import { useI18n } from "../i18n";
 import { currentPreset, valuesOf } from "../lib/settings";
 import { api } from "../lib/api";
 import { errorText } from "../lib/errors";
+import { isMac } from "../lib/platform";
 import { useLauncher } from "../lib/store";
 import type { PendingItem, Progress, RealmDef } from "../lib/types";
 
@@ -94,7 +95,7 @@ export function HomeScreen({ onScreen, onNews }: { onScreen: (s: Screen) => void
                   onRetry={() => (error ? play(false) : refresh(true))}
                 />
               </div>
-              {!busy && (
+              {!busy && !isMac && (
                 <button
                   className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3.5 text-xs text-white/75 transition hover:border-wow-gold/40 hover:text-wow-gold-light"
                   onClick={() => onScreen("graphics")}

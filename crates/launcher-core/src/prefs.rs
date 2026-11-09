@@ -1,4 +1,4 @@
-//! The launcher's own choices, in %APPDATA%\Lordaeron Launcher\prefs.json.
+//! The launcher's own choices, in its configuration folder (eu.lordaeron.launcher): prefs.json.
 
 use std::fs;
 use std::path::Path;
@@ -26,6 +26,8 @@ pub struct Prefs {
     pub auto_login: bool,
     /// the signed-in account's security level (the website tells it at sign-in and at each ticket): the team's realms
     pub security: Option<u8>,
+    /// on a Mac, the app that starts the game, when the launcher cannot tell it from where the game is
+    pub start_with: Option<String>,
 }
 
 impl Default for Prefs {
@@ -45,6 +47,7 @@ impl Default for Prefs {
             signed_in_as: None,
             auto_login: true,
             security: None,
+            start_with: None,
         }
     }
 }

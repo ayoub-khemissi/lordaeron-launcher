@@ -12,6 +12,7 @@ use launcher_core::lumenveil;
 use launcher_core::plan::{self, PendingItem, PlanInput};
 use launcher_core::prefs::Prefs;
 use launcher_core::spots::{self, Spot};
+use launcher_core::start;
 use launcher_core::version::Version;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -60,6 +61,8 @@ pub struct Status {
     patches: Vec<plan::PatchState>,
     running: bool,
     launcher_version: String,
+    /// "windows" or "macos": Lumenveil and the automatic login are Windows' only
+    platform: &'static str,
 }
 
 #[derive(Clone, Serialize)]
@@ -143,7 +146,7 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
             realm: &realm,
             manifest: feeds.manifest.as_ref(),
             lumenveil: feeds.lumenveil.as_ref(),
-            want_lumenveil: prefs.lumenveil,
+            want_lumenveil: prefs.lumenveil && cfg!(windows),
             repair: state.repair_next.load(Ordering::SeqCst),
         }),
         _ => Vec::new(),
@@ -172,6 +175,7 @@ fn compute_status(app: &AppHandle, state: &AppState) -> Status {
         patches,
         running: state.is_running(),
         launcher_version: app.package_info().version.to_string(),
+        platform: std::env::consts::OS,
         prefs,
     }
 }
@@ -198,11 +202,19 @@ pub async fn find_games(app: AppHandle, state: State<'_, AppState>) -> Res<Vec<G
         .into_iter()
         .flatten()
         .collect();
+    #[cfg(windows)]
     for letter in b'C'..=b'Z' {
         let drive = PathBuf::from(format!("{}:\\", letter as char));
         if drive.exists() {
             roots.push(drive);
         }
+    }
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(home) = path.home_dir() {
+            roots.extend(start::mac_places(&home));
+        }
+        roots.push(PathBuf::from("/Applications"));
     }
     tauri::async_runtime::spawn_blocking(move || game::find(&roots, &extra)).await.map_err(err)
 }
@@ -211,6 +223,12 @@ pub async fn find_games(app: AppHandle, state: State<'_, AppState>) -> Res<Vec<G
 pub fn check_game(path: String) -> GameInfo {
     // a folder inside the game's (Data, Interface, ...) means the game folder above it
     let mut dir = PathBuf::from(&path);
+    // on a Mac, an app that wraps its own Windows: the game inside it
+    if dir.extension().is_some_and(|e| e.eq_ignore_ascii_case("app")) {
+        if let Some(found) = game::find(&start::app_places(&dir), &[]).into_iter().find(|g| g.ok) {
+            return found;
+        }
+    }
     if !dir.join("Wow.exe").is_file() {
         if let Some(parent) = dir.parent().filter(|p| p.join("Wow.exe").is_file()) {
             dir = parent.to_path_buf();
@@ -414,7 +432,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         game::clear_cache(&root);
         // signed in: a one-time ticket the launcher types on the login screen (crate::login); else the name alone
         let mut ticket = None;
-        if prefs.auto_login && prefs.signed_in_as.is_some() {
+        if cfg!(windows) && prefs.auto_login && prefs.signed_in_as.is_some() {
             match crate::login::ticket().await {
                 Ok((name, t, security)) => {
                     game::set_account_name(&root, Some(&name))?;
@@ -441,8 +459,14 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         // Lumenveil 0.7.1 logs in itself from the game's environment (auto_login.cpp): nothing typed, nothing on disk.
         // Without it, the launcher types the ticket.
         let in_game_login = lumenveil::installed(&root).is_some_and(|v| v >= Version([0, 7, 1, 0]));
-        let mut command = std::process::Command::new(root.join("Wow.exe"));
-        command.current_dir(&root);
+        // Wow.exe on Windows; on a Mac, the compatibility layer that runs it
+        let home = app.path().home_dir().unwrap_or_default();
+        let chosen = prefs.start_with.as_deref().map(Path::new);
+        let how = start::runner(&root, chosen, cfg!(windows))
+            .and_then(|r| start::launch(&r, &root, &home, |p| p.exists()))
+            .ok_or_else(|| coded("noRunner", ""))?;
+        let mut command = std::process::Command::new(&how.program);
+        command.args(&how.args).envs(how.env.iter().map(|(k, v)| (k, v))).current_dir(&root);
         let name = prefs.signed_in_as.clone().unwrap_or_default().to_uppercase();
         let name_ok = !name.is_empty() && name.len() <= 32 && name.chars().all(|c| c.is_ascii_alphanumeric());
         if in_game_login && name_ok {

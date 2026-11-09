@@ -11,6 +11,7 @@ const KNOWN = new Set([
   "cannotWrite",
   "locked",
   "cannotStart",
+  "noRunner",
   "setupFailed",
   "notInstalled",
   "noBackup",

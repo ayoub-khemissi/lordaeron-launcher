@@ -1,7 +1,7 @@
 //! Signing in to the launcher and the game's automatic login (website app/api/launcher/*, authserver launcher tickets).
 //!
 //! The launcher never keeps the password: the sign-in (password, and the authenticator code when the account has one) gives
-//! a device token, kept in Windows' credential manager and revocable. At each Play the token buys a one-time ticket, valid
+//! a device token, kept in the system's credential store (Windows' credential manager, the Mac's keychain) and revocable. At each Play the token buys a one-time ticket, valid
 //! one minute; the launcher puts the account name in Config.wtf and types the ticket in the game's password field, only
 //! while the game's window is in front, so it is never typed anywhere else.
 

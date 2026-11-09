@@ -53,3 +53,43 @@ jobs:
             target/release/bundle/nsis/*.sig
             target/release/bundle/nsis/SHA256SUMS.txt
           if-no-files-found: error
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - name: Version of this build
+        run: echo "{\"version\":\"0.1.${GITHUB_RUN_NUMBER}\"}" > version.json
+      # one app for Apple Silicon and Intel Macs, signed ad hoc (no Apple developer account): the player allows it once
+      - name: Build the app
+        run: pnpm tauri build --target universal-apple-darwin --config version.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - name: Checksums
+        run: |
+          cd target/universal-apple-darwin/release/bundle
+          cp dmg/*.dmg macos/*.app.tar.gz macos/*.app.tar.gz.sig .
+          shasum -a 256 *.dmg *.app.tar.gz > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lordaeron-Launcher-macOS
+          path: |
+            target/universal-apple-darwin/release/bundle/*.dmg
+            target/universal-apple-darwin/release/bundle/*.app.tar.gz
+            target/universal-apple-darwin/release/bundle/*.app.tar.gz.sig
+            target/universal-apple-darwin/release/bundle/SHA256SUMS.txt
+          if-no-files-found: error

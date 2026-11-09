@@ -59,7 +59,7 @@ pub fn check(root: &Path) -> GameInfo {
 pub fn find(roots: &[PathBuf], extra: &[PathBuf]) -> Vec<GameInfo> {
     const SKIP: &[&str] = &[
         "windows", "$recycle.bin", "system volume information", "programdata", "recovery", "perflogs", "msocache",
-        "appdata", "node_modules", ".git",
+        "appdata", "node_modules", ".git", "library",
     ];
     let mut found: Vec<PathBuf> = extra.iter().filter(|p| p.join("Wow.exe").is_file()).cloned().collect();
     fn walk(dir: &Path, depth: usize, found: &mut Vec<PathBuf>) {

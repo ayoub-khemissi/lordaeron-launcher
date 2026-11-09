@@ -49,6 +49,15 @@ export async function pickFolder(): Promise<string | null> {
   return typeof picked === "string" ? picked : null;
 }
 
+// on a Mac, the app that starts the game (an .app: CrossOver, a wrapper, WoWSilicon...)
+export async function pickApp(): Promise<string | null> {
+  if (!inApp) return null;
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const picked = await open({ directory: false, multiple: false, defaultPath: "/Applications", filters: [{ name: "App", extensions: ["app"] }] });
+
+  return typeof picked === "string" ? picked : null;
+}
+
 export async function onProgress(handler: (p: Progress) => void): Promise<() => void> {
   if (!inApp) {
     window.addEventListener("mock-progress", ((e: CustomEvent<Progress>) => handler(e.detail)) as EventListener);

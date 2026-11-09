@@ -9,4 +9,5 @@ pub mod lumenveil;
 pub mod plan;
 pub mod prefs;
 pub mod spots;
+pub mod start;
 pub mod version;

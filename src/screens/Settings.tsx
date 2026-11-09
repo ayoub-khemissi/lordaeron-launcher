@@ -20,8 +20,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { PageHeader, Pill } from "../components/PageHeader";
 import { SignInModal } from "../components/SignIn";
 import { LANGUAGES, useI18n } from "../i18n";
-import { api, launcherUpdate } from "../lib/api";
+import { api, launcherUpdate, pickApp } from "../lib/api";
 import { errorText } from "../lib/errors";
+import { isMac } from "../lib/platform";
 import { useLauncher } from "../lib/store";
 import type { GameInfo } from "../lib/types";
 
@@ -86,6 +87,33 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
             {t("settings.change")}
           </Button>
         </div>
+        {isMac && (
+          <div className="mt-3 divide-y divide-white/[0.06]">
+            <Row hint={t("settings.startWithHint")} label={t("settings.startWith")}>
+              <div className="flex items-center gap-2">
+                <span className="max-w-[220px] truncate text-[13px] text-white/60" title={prefs.startWith ?? ""}>
+                  {prefs.startWith ? prefs.startWith.split("/").pop()?.replace(/\.app$/i, "") : t("settings.startWithAuto")}
+                </span>
+                {prefs.startWith && (
+                  <Button size="sm" variant="light" onPress={() => setPrefs({ startWith: null })}>
+                    {t("settings.startWithReset")}
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="flat"
+                  onPress={async () => {
+                    const app = await pickApp();
+
+                    if (app) await setPrefs({ startWith: app });
+                  }}
+                >
+                  {t("settings.startWithChoose")}
+                </Button>
+              </div>
+            </Row>
+          </div>
+        )}
       </Card>
 
       <Card icon={<UserRound size={18} />} title={t("settings.account")}>
@@ -102,14 +130,16 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
                 {t("signin.signOut")}
               </Button>
             </Row>
-            <Row hint={t("signin.autoHint")} label={t("signin.auto")}>
-              <Switch
-                aria-label={t("signin.auto")}
-                color="primary"
-                isSelected={prefs.autoLogin}
-                onValueChange={(v) => setPrefs({ autoLogin: v })}
-              />
-            </Row>
+            {!isMac && (
+              <Row hint={t("signin.autoHint")} label={t("signin.auto")}>
+                <Switch
+                  aria-label={t("signin.auto")}
+                  color="primary"
+                  isSelected={prefs.autoLogin}
+                  onValueChange={(v) => setPrefs({ autoLogin: v })}
+                />
+              </Row>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-white/[0.06]">
