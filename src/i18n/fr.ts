@@ -32,6 +32,8 @@ const fr: Partial<Messages> = {
   "home.noticeClose": "Masquer ce message",
   "home.noticeMore": "En savoir plus",
   "home.launcherUpdate": "Installation de la version {version}, le launcher redémarre ensuite.",
+  "titleBar.update": "Mettre à jour",
+  "titleBar.updateHint": "La version {version} du launcher est sortie : installez-la maintenant. Le launcher redémarre tout seul.",
 
   "home.resume": "Reprendre",
   "home.pause": "Mettre le téléchargement en pause",
