@@ -28,7 +28,16 @@ import type { GameInfo } from "../lib/types";
 // download caps offered, in bytes per second (0: none)
 const LIMITS = [0, 1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000];
 
-const RADIO = { label: "text-[14px] font-medium text-white/90", description: "text-[12px] text-white/45" };
+// a choice shown as a tile, the chosen one in gold (as the game folders of the first start)
+const TILE = {
+  base:
+    "m-0 max-w-none items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 transition " +
+    "hover:border-white/25 data-[selected=true]:border-wow-gold/70 data-[selected=true]:bg-wow-gold/10",
+  wrapper: "mt-0.5",
+  labelWrapper: "ms-0",
+  label: "text-[14px] font-medium text-white/90",
+  description: "mt-0.5 text-[12px] leading-snug text-white/45",
+};
 
 export function gameProblemText(t: ReturnType<typeof useI18n>["t"], game: GameInfo) {
   return game.ok
@@ -235,16 +244,16 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
 
       <Card icon={<Layers size={18} />} title={t("settings.channel")}>
         <RadioGroup
-          classNames={{ wrapper: "gap-8" }}
+          aria-label={t("settings.channel")}
+          classNames={{ wrapper: "grid grid-cols-2 gap-3" }}
           color="primary"
-          orientation="horizontal"
           value={prefs.channel}
           onValueChange={(v) => setPrefs({ channel: v as typeof prefs.channel })}
         >
-          <Radio classNames={RADIO} description={t("settings.channel.stableHint")} value="stable">
+          <Radio classNames={TILE} description={t("settings.channel.stableHint")} value="stable">
             {t("settings.channel.stable")}
           </Radio>
-          <Radio classNames={RADIO} description={t("settings.channel.testHint")} value="test">
+          <Radio classNames={TILE} description={t("settings.channel.testHint")} value="test">
             {t("settings.channel.test")}
           </Radio>
         </RadioGroup>
