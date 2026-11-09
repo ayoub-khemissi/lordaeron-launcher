@@ -31,6 +31,8 @@ const en = {
   "home.noticeClose": "Hide this message",
   "home.noticeMore": "Learn more",
   "home.launcherUpdate": "Installing version {version}; the launcher then starts again.",
+  "titleBar.update": "Update",
+  "titleBar.updateHint": "Version {version} of the launcher is out: install it now. The launcher starts again by itself.",
 
   "home.resume": "Resume",
   "home.pause": "Pause the download",

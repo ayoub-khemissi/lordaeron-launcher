@@ -1,6 +1,6 @@
 import { addToast, Progress, Spinner } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Sidebar, type Screen } from "./components/Sidebar";
 import { TitleBar } from "./components/TitleBar";
@@ -26,18 +26,29 @@ function Shell() {
   const [newsTarget, setNewsTarget] = useState<NewsTarget | undefined>();
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [selfUpdate, setSelfUpdate] = useState<string | null>(null);
+  // a newer launcher, not installed yet: the title bar shows it, a click installs it
+  const [available, setAvailable] = useState<string | null>(null);
 
   // a first start, or a game folder that is gone: the welcome steps
   useEffect(() => {
     if (status && onboarding === null) setOnboarding(!status.prefs.gameDir || status.game?.problem === "missing");
   }, [status, onboarding]);
 
+  const install = (version: string) => {
+    setSelfUpdate(version);
+    launcherUpdate(true).catch((e) => {
+      setSelfUpdate(null);
+      window.dispatchEvent(new CustomEvent("launcher-error", { detail: e instanceof Error ? e.message : String(e) }));
+    });
+  };
+
   // the launcher's own update, before anything else, when the game is not running
   useEffect(() => {
-    if (!status || status.running) return;
+    if (!status) return;
     launcherUpdate(false)
       .then((version) => {
-        if (!version) return;
+        setAvailable(version);
+        if (!version || status.running) return;
         setSelfUpdate(version);
 
         return launcherUpdate(true);
@@ -47,6 +58,25 @@ function Shell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status === null]);
 
+  // one published while the launcher stays open, or on the other channel: the title bar's button
+  const channel = status?.prefs.channel;
+  const firstChannel = useRef(true);
+
+  useEffect(() => {
+    if (!channel) return;
+    const check = () =>
+      launcherUpdate(false)
+        .then(setAvailable)
+        .catch(() => {});
+    const timer = window.setInterval(check, 15 * 60_000);
+
+    // at start the check above runs; afterwards a change of channel checks at once
+    if (!firstChannel.current) check();
+    firstChannel.current = false;
+
+    return () => window.clearInterval(timer);
+  }, [channel]);
+
   const language: Language = (status?.prefs.language as Language) || systemLanguage();
 
   return (
@@ -54,7 +84,7 @@ function Shell() {
       <div className="flex h-full flex-col bg-wow-darker">
         <ErrorToasts />
         <AccountSync />
-        <TitleBar />
+        <TitleBar update={selfUpdate ? null : available} onUpdate={() => available && install(available)} />
         {!status || onboarding === null ? (
           <div className="flex flex-1 items-center justify-center">
             <Spinner color="primary" />
