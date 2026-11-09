@@ -218,6 +218,8 @@ const en = {
   "onboarding.searching": "Looking for World of Warcraft on this PC…",
   "onboarding.noneFound": "No World of Warcraft 3.3.5a folder was found. Choose it yourself:",
   "onboarding.browse": "Choose another folder…",
+  "onboarding.browseApp": "Choose an app…",
+  "onboarding.gameTextMac": "Pick the folder of your World of Warcraft 3.3.5a client, the one that holds Wow.exe, or the app your game is inside.",
   "onboarding.noClient": "No client yet? The website explains where to get it.",
   "onboarding.realmTitle": "Choose your realm",
   "onboarding.realmText": "You can switch at any time from the Play tab: the launcher puts the right patches in place.",

@@ -219,6 +219,8 @@ const fr: Partial<Messages> = {
   "onboarding.searching": "Recherche de World of Warcraft sur ce PC…",
   "onboarding.noneFound": "Aucun dossier World of Warcraft 3.3.5a trouvé. Choisissez-le vous-même :",
   "onboarding.browse": "Choisir un autre dossier…",
+  "onboarding.browseApp": "Choisir une app…",
+  "onboarding.gameTextMac": "Choisissez le dossier de votre client World of Warcraft 3.3.5a, celui qui contient Wow.exe, ou l'app dans laquelle se trouve votre jeu.",
   "onboarding.noClient": "Pas encore de client ? Le site explique où le trouver.",
   "onboarding.realmTitle": "Choisissez votre royaume",
   "onboarding.realmText": "Vous pourrez en changer à tout moment depuis l'onglet Jouer : le launcher met les bons patchs en place.",

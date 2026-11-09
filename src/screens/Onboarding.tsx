@@ -1,12 +1,12 @@
 import { Button, Select, SelectItem, Spinner, Switch } from "@heroui/react";
-import { ArrowLeft, CheckCircle2, ExternalLink, FolderSearch, XCircle } from "lucide-react";
+import { AppWindowMac, ArrowLeft, CheckCircle2, ExternalLink, FolderSearch, XCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import { CompareGallery } from "../components/CompareSlider";
 import { PresetCard } from "../components/PresetCard";
 import { LANGUAGES, systemLanguage, useI18n } from "../i18n";
-import { api, pickFolder } from "../lib/api";
+import { api, pickApp, pickFolder } from "../lib/api";
 import { isMac } from "../lib/platform";
 import { useLauncher } from "../lib/store";
 import type { GameInfo } from "../lib/types";
@@ -43,8 +43,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       .catch(() => setGames([]));
   }, [current, games, game]);
 
-  const browse = async () => {
-    const path = await pickFolder();
+  // a folder; on a Mac also an app that holds the game (Wineskin, Sikarugir...): the folder dialog cannot pick an app
+  const browse = async (pick: () => Promise<string | null>) => {
+    const path = await pick();
 
     if (!path) return;
     const info = await api.checkGame(path);
@@ -112,7 +113,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             {current === "game" && (
               <div>
                 <h2 className="font-heading text-3xl text-white/95">{t("onboarding.gameTitle")}</h2>
-                <p className="mt-2 text-sm text-white/55">{t("onboarding.gameText")}</p>
+                <p className="mt-2 text-sm text-white/55">{t(isMac ? "onboarding.gameTextMac" : "onboarding.gameText")}</p>
                 <div className="mt-5 space-y-2">
                   {games === null ? (
                     <div className="flex items-center gap-3 py-6 text-sm text-white/55">
@@ -144,9 +145,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                   )}
                 </div>
                 <div className="mt-4 flex items-center gap-4">
-                  <Button startContent={<FolderSearch size={16} />} variant="flat" onPress={browse}>
+                  <Button startContent={<FolderSearch size={16} />} variant="flat" onPress={() => browse(pickFolder)}>
                     {t("onboarding.browse")}
                   </Button>
+                  {isMac && (
+                    <Button startContent={<AppWindowMac size={16} />} variant="flat" onPress={() => browse(pickApp)}>
+                      {t("onboarding.browseApp")}
+                    </Button>
+                  )}
                   <button
                     className="flex items-center gap-1 text-xs text-white/40 transition hover:text-wow-gold-light"
                     onClick={() => api.open("url", `https://lordaeron.eu/${language}/lordaeron/how-to`)}
