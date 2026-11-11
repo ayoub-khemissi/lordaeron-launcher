@@ -474,10 +474,19 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
                 command.env("LORDAERON_AUTOLOGIN", format!("{name}\t{t}"));
             }
         }
-        let child = command.spawn().map_err(|_| coded("cannotStart", ""))?;
-        if let Some(ticket) = ticket {
-            std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(2500)));
+        let mut child = command.spawn().map_err(|_| coded("cannotStart", ""))?;
+        match ticket {
+            Some(ticket) => {
+                std::thread::spawn(move || crate::login::type_ticket(&child, &ticket, Duration::from_millis(2500)));
+            }
+            // waited for, so that it does not linger once ended (on a Mac it is open or Wine, not the game itself)
+            None => {
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+            }
         }
+        *state.started.lock().unwrap() = Some(std::time::Instant::now());
         state.log("game started");
         state.running.store(true, Ordering::SeqCst);
         let _ = app.emit("game", true);

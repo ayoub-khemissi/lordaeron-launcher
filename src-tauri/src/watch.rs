@@ -37,7 +37,10 @@ pub fn start(app: AppHandle) {
         loop {
             let state = app.state::<AppState>();
             let root = state.game_dir();
-            let running = game_running(&mut system, root.as_deref());
+            // on a Mac, Wine takes a while to show the game: until then Play stays taken
+            let starting = !cfg!(windows)
+                && state.started.lock().unwrap().is_some_and(|t| t.elapsed() < Duration::from_secs(40));
+            let running = game_running(&mut system, root.as_deref()) || starting;
             if state.running.swap(running, Ordering::SeqCst) != running {
                 let _ = app.emit("game", running);
             }

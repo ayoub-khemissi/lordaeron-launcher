@@ -24,6 +24,8 @@ pub struct AppState {
     pub feeds: Mutex<Feeds>,
     pub busy: AtomicBool,
     pub running: AtomicBool,
+    /// when Play last started the game (a Mac's Wine shows it only after a while)
+    pub started: Mutex<Option<std::time::Instant>>,
     pub repair_next: AtomicBool,
     pub paused: AtomicBool,
     pub log_file: PathBuf,
@@ -46,6 +48,7 @@ impl AppState {
             }),
             busy: AtomicBool::new(false),
             running: AtomicBool::new(false),
+            started: Mutex::new(None),
             repair_next: AtomicBool::new(false),
             paused: AtomicBool::new(false),
             log_file: logs.join("launcher.log"),
