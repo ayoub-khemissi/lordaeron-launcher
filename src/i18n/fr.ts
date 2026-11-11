@@ -171,6 +171,7 @@ const fr: Partial<Messages> = {
   "settings.afterPlay.close": "Fermer le launcher",
   "settings.afterPlay.stay": "Garder le launcher ouvert",
   "settings.channel": "Versions de Lumenveil",
+  "settings.channelMac": "Versions du launcher",
   "settings.channel.stable": "Stable",
   "settings.channel.stableHint": "Versions testées",
   "settings.channel.test": "Avant-première",

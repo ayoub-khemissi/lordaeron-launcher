@@ -272,7 +272,8 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
         </div>
       </Card>
 
-      <Card icon={<Layers size={18} />} title={t("settings.channel")}>
+      {/* on a Mac (no Lumenveil) the channel is the launcher's own */}
+      <Card icon={<Layers size={18} />} title={t(isMac ? "settings.channelMac" : "settings.channel")}>
         <RadioGroup
           aria-label={t("settings.channel")}
           classNames={{ wrapper: "grid grid-cols-2 gap-3" }}

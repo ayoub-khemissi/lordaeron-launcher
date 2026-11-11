@@ -170,6 +170,7 @@ const en = {
   "settings.afterPlay.close": "Close the launcher",
   "settings.afterPlay.stay": "Keep the launcher open",
   "settings.channel": "Lumenveil versions",
+  "settings.channelMac": "Launcher versions",
   "settings.channel.stable": "Stable",
   "settings.channel.stableHint": "Tested versions",
   "settings.channel.test": "Preview",
