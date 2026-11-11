@@ -9,8 +9,11 @@ use std::path::{Component, Path, PathBuf};
 pub enum Runner {
     /// Wow.exe itself (Windows)
     Direct,
-    /// an app the player chose, or the app that wraps the game folder: macOS opens it, and it starts the game
+    /// the app that wraps the game folder: macOS opens it, and it starts the game
     App(PathBuf),
+    /// the app the player chose: macOS opens Wow.exe with it (CrossOver and Whisky ask the bottle, a wrapper runs it
+    /// in its own Windows)
+    Open(PathBuf),
     /// a CrossOver bottle, by its name
     CrossOver(String),
     /// a Whisky bottle (Whisky's own Wine, the bottle as the prefix): Whisky's app id, the bottle's folder
@@ -58,9 +61,25 @@ pub fn runner(root: &Path, chosen: Option<&Path>, windows: bool) -> Option<Runne
     if windows {
         return Some(Runner::Direct);
     }
-    if let Some(app) = chosen.filter(|a| !a.as_os_str().is_empty()) {
-        return Some(Runner::App(app.to_path_buf()));
+    let found = found(root);
+    let Some(app) = chosen.filter(|a| !a.as_os_str().is_empty()) else { return found };
+    // the chosen app is the one that holds the folder (CrossOver for its bottle, Whisky for its own, the wrapper):
+    // started as found, straight into the bottle
+    let name = app.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+    let same = match &found {
+        Some(Runner::CrossOver(_)) => name == "crossover.app",
+        Some(Runner::Whisky(..)) => name == "whisky.app",
+        Some(Runner::App(wrapper)) => wrapper == app,
+        _ => false,
+    };
+    if same {
+        return found;
     }
+    Some(Runner::Open(app.to_path_buf()))
+}
+
+/// How the game in `root` starts, told by where the folder is.
+fn found(root: &Path) -> Option<Runner> {
     let parts = names(root);
     // the outermost app bundle holding the folder starts it (a wrapper keeps its Windows inside itself)
     if let Some(i) = parts.iter().position(|n| n.to_lowercase().ends_with(".app")) {
@@ -81,13 +100,21 @@ pub fn runner(root: &Path, chosen: Option<&Path>, windows: bool) -> Option<Runne
     None
 }
 
-/// The Wines a Mac may have, the first one present is used: Homebrew's, then the WineHQ apps.
+/// The Wines a Mac may have, the first one present is used: Homebrew's, then the WineHQ and Gcenx apps (whose older
+/// builds name the 64-bit loader wine64).
 pub const WINES: &[&str] = &[
     "/opt/homebrew/bin/wine",
     "/usr/local/bin/wine",
     "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine",
     "/Applications/Wine Staging.app/Contents/Resources/wine/bin/wine",
     "/Applications/Wine Devel.app/Contents/Resources/wine/bin/wine",
+    "/Applications/Wine Crossover.app/Contents/Resources/wine/bin/wine",
+    "/opt/homebrew/bin/wine64",
+    "/usr/local/bin/wine64",
+    "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine64",
+    "/Applications/Wine Staging.app/Contents/Resources/wine/bin/wine64",
+    "/Applications/Wine Devel.app/Contents/Resources/wine/bin/wine64",
+    "/Applications/Wine Crossover.app/Contents/Resources/wine/bin/wine64",
     "/usr/bin/wine",
 ];
 
@@ -98,6 +125,9 @@ pub fn launch(runner: &Runner, root: &Path, home: &Path, exists: impl Fn(&Path) 
     match runner {
         Runner::Direct => plain(wow, Vec::new(), Vec::new()),
         Runner::App(app) => plain(PathBuf::from("/usr/bin/open"), vec!["-a".into(), app.clone().into()], Vec::new()),
+        Runner::Open(app) => {
+            plain(PathBuf::from("/usr/bin/open"), vec!["-a".into(), app.clone().into(), wow.into()], Vec::new())
+        }
         Runner::CrossOver(bottle) => {
             let tail = "Contents/SharedSupport/CrossOver/bin/wine";
             let program = [PathBuf::from("/Applications/CrossOver.app"), home.join("Applications/CrossOver.app")]
@@ -251,11 +281,30 @@ mod tests {
     }
 
     #[test]
-    fn chosen_app_comes_first_and_plain_folders_have_none() {
+    fn chosen_app_opens_wow_and_plain_folders_have_none() {
         let root = Path::new("/Users/ana/Games/WoW");
         assert_eq!(runner(root, None, false), None);
-        let app = Path::new("/Applications/WoWSilicon.app");
-        assert_eq!(runner(root, Some(app), false), Some(Runner::App(app.to_path_buf())));
+        let app = Path::new("/Applications/CrossOver.app");
+        let r = runner(root, Some(app), false).unwrap();
+        assert_eq!(r, Runner::Open(app.to_path_buf()));
+        let l = launch(&r, root, Path::new(HOME), all).unwrap();
+        assert_eq!(l.program, Path::new("/usr/bin/open"));
+        assert_eq!(l.args, vec![OsString::from("-a"), app.into(), root.join("Wow.exe").into()]);
         assert_eq!(runner(root, Some(Path::new("")), false), None);
+    }
+
+    #[test]
+    fn chosen_app_holding_the_folder_starts_it_as_found() {
+        let bottle = Path::new("/Users/ana/Library/Application Support/CrossOver/Bottles/WoW/drive_c/WoW");
+        let crossover = Path::new("/Applications/CrossOver.app");
+        assert_eq!(runner(bottle, Some(crossover), false), Some(Runner::CrossOver("WoW".into())));
+        let whisky = Path::new("/Users/ana/Library/Containers/com.isaacmarovitz.Whisky/Bottles/1F2E/drive_c/WoW");
+        assert!(matches!(runner(whisky, Some(Path::new("/Applications/Whisky.app")), false), Some(Runner::Whisky(..))));
+        // another app than the bottle's: it opens the game
+        assert_eq!(runner(bottle, Some(Path::new("/Applications/Whisky.app")), false),
+            Some(Runner::Open(PathBuf::from("/Applications/Whisky.app"))));
+        let wrapped = Path::new("/Applications/WoW.app/Contents/Resources/drive_c/WoW");
+        let wrapper = Path::new("/Applications/WoW.app");
+        assert_eq!(runner(wrapped, Some(wrapper), false), Some(Runner::App(wrapper.to_path_buf())));
     }
 }
