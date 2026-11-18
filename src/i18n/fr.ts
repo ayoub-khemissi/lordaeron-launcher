@@ -205,6 +205,10 @@ const fr: Partial<Messages> = {
   "settings.uninstallHint": "Retire les fichiers de Lumenveil du dossier du jeu. Le jeu redevient comme avant.",
   "settings.uninstallConfirm": "Les fichiers de Lumenveil sont retirés du dossier du jeu. Vous pourrez le réinstaller à tout moment depuis l'onglet Graphismes. Continuer ?",
   "settings.logs": "Ouvrir les journaux",
+  "settings.sendCrashes": "Envoyer les rapports de plantage à l'équipe",
+  "settings.sendCrashesHint":
+    "Quand le jeu plante sur Lordaeron, le launcher envoie le rapport qu'il laisse (dossier Errors) pour que nous puissions corriger la cause. Votre nom Windows en est retiré.",
+  "crash.sent": "Le jeu a planté : le rapport n°{id} a été envoyé à l'équipe pour que nous puissions corriger le problème.",
   "settings.about": "À propos",
   "settings.launcherVersion": "Launcher {version}",
   "settings.website": "Site web",

@@ -76,6 +76,14 @@ export async function onGame(handler: (running: boolean) => void): Promise<() =>
   return listen<boolean>("game", (e) => handler(e.payload));
 }
 
+// a game crash report the launcher sent to the team by itself (its number)
+export async function onCrashSent(handler: (id: number) => void): Promise<() => void> {
+  if (!inApp) return () => {};
+  const { listen } = await import("@tauri-apps/api/event");
+
+  return listen<number>("crash-sent", (e) => handler(e.payload));
+}
+
 export async function closeWindow(action: "minimize" | "close") {
   if (!inApp) return;
   const { getCurrentWindow } = await import("@tauri-apps/api/window");

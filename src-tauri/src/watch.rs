@@ -32,6 +32,8 @@ pub fn game_running(system: &mut System, root: Option<&Path>) -> bool {
 }
 
 pub fn start(app: AppHandle) {
+    // a crash while the launcher was closed: its report goes once the feeds are read
+    crate::crashes::check_later(app.clone(), Duration::from_secs(20));
     std::thread::spawn(move || {
         let mut system = System::new();
         loop {
@@ -43,6 +45,10 @@ pub fn start(app: AppHandle) {
             let running = game_running(&mut system, root.as_deref()) || starting;
             if state.running.swap(running, Ordering::SeqCst) != running {
                 let _ = app.emit("game", running);
+                // the game stopped, maybe on an error: its report is in the Errors folder once it has ended
+                if !running {
+                    crate::crashes::check_later(app.clone(), Duration::from_secs(5));
+                }
             }
             std::thread::sleep(Duration::from_secs(2));
         }

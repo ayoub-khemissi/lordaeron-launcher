@@ -204,6 +204,10 @@ const en = {
   "settings.uninstallHint": "Removes Lumenveil's files from the game folder. The game is left as it was before.",
   "settings.uninstallConfirm": "Lumenveil's files are removed from the game folder. You can install it again at any time from the Graphics tab. Continue?",
   "settings.logs": "Open the logs",
+  "settings.sendCrashes": "Send crash reports to the team",
+  "settings.sendCrashesHint":
+    "When the game crashes on Lordaeron, the launcher sends the report it leaves (Errors folder) so that we can fix the cause. Your Windows name is removed from it.",
+  "crash.sent": "The game crashed: report #{id} was sent to the team so that we can fix it.",
   "settings.about": "About",
   "settings.launcherVersion": "Launcher {version}",
   "settings.website": "Website",

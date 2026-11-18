@@ -291,6 +291,15 @@ export function SettingsScreen({ onGameFolder }: { onGameFolder: () => void }) {
       </Card>
 
       <Card icon={<Wrench size={18} />} title={t("settings.maintenance")}>
+        <Row hint={t("settings.sendCrashesHint")} label={t("settings.sendCrashes")}>
+          <Switch
+            aria-label={t("settings.sendCrashes")}
+            color="primary"
+            isSelected={prefs.sendCrashes}
+            onValueChange={(v) => setPrefs({ sendCrashes: v })}
+          />
+        </Row>
+        <div className="my-4 border-t border-white/[0.06]" />
         <div className="space-y-3">
           <Action
             busy={working === "repair"}

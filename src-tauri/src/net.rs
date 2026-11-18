@@ -13,6 +13,7 @@ pub const NEWS_FEED: &str = "https://lordaeron.eu/patches/launcher/news.json";
 pub const NEWS_PAGES: &str = "https://lordaeron.eu/patches/launcher/";
 pub const TRUSTED: &str = "https://lordaeron.eu/";
 pub const REPORTS: &str = "https://lordaeron.eu/api/launcher/reports";
+pub const CRASHES: &str = "https://lordaeron.eu/api/launcher/crashes";
 pub const UPDATE_STABLE: &str = "https://lordaeron.eu/patches/launcher/update.json";
 pub const UPDATE_TEST: &str = "https://lordaeron.eu/patches/launcher/update-test.json";
 
@@ -151,9 +152,18 @@ pub async fn download(
 
 /// Sends a Lumenveil report to the site; its answer is the report's number, or one of the site's error codes.
 pub async fn post_report(body: &serde_json::Value) -> Result<u64> {
+    post_numbered(REPORTS, body, Duration::from_secs(60)).await
+}
+
+/// Sends a game crash report (its text and dump, a few MB at most) to the site; its answer is the report's number.
+pub async fn post_crash(body: &serde_json::Value) -> Result<u64> {
+    post_numbered(CRASHES, body, Duration::from_secs(300)).await
+}
+
+async fn post_numbered(url: &str, body: &serde_json::Value, timeout: Duration) -> Result<u64> {
     use launcher_core::error::coded;
-    let response = client(Duration::from_secs(60))?
-        .post(REPORTS)
+    let response = client(timeout)?
+        .post(url)
         .json(body)
         .send()
         .await

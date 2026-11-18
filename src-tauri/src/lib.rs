@@ -2,6 +2,7 @@
 //! process, the progress the window shows, and the files and folders of this PC.
 
 mod commands;
+mod crashes;
 mod login;
 mod net;
 mod state;

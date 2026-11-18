@@ -22,6 +22,7 @@ const prefs: Prefs = {
   autoLogin: true,
   security: null,
   startWith: null,
+  sendCrashes: true,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [

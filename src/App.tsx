@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sidebar, type Screen } from "./components/Sidebar";
 import { TitleBar } from "./components/TitleBar";
 import { I18nProvider, systemLanguage, useI18n, type Language } from "./i18n";
-import { inApp, launcherUpdate } from "./lib/api";
+import { inApp, launcherUpdate, onCrashSent } from "./lib/api";
 import { errorText } from "./lib/errors";
 import { LauncherProvider, useLauncher } from "./lib/store";
 import { GraphicsScreen } from "./screens/Graphics";
@@ -83,6 +83,7 @@ function Shell() {
     <I18nProvider language={language}>
       <div className="flex h-full flex-col bg-wow-darker">
         <ErrorToasts />
+        <CrashToasts />
         <AccountSync />
         <TitleBar update={selfUpdate ? null : available} onUpdate={() => available && install(available)} />
         {!status || onboarding === null ? (
@@ -170,6 +171,28 @@ function ErrorToasts() {
     window.addEventListener("launcher-error", show);
 
     return () => window.removeEventListener("launcher-error", show);
+  }, [t]);
+
+  return null;
+}
+
+// a game crash report sent by the launcher on its own (src-tauri/src/crashes.rs): the player knows it went to the team
+function CrashToasts() {
+  const { t } = useI18n();
+
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    let gone = false;
+
+    onCrashSent((id) => addToast({ title: t("crash.sent", { id }), color: "primary" })).then((unlisten) => {
+      if (gone) unlisten();
+      else stop = unlisten;
+    });
+
+    return () => {
+      gone = true;
+      stop?.();
+    };
   }, [t]);
 
   return null;

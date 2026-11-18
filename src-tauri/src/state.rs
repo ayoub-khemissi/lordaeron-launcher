@@ -27,6 +27,8 @@ pub struct AppState {
     /// when Play last started the game (a Mac's Wine shows it only after a while)
     pub started: Mutex<Option<std::time::Instant>>,
     pub repair_next: AtomicBool,
+    /// a look for new crash reports is running (crate::crashes): one at a time
+    pub crash_check: AtomicBool,
     pub paused: AtomicBool,
     pub log_file: PathBuf,
 }
@@ -50,6 +52,7 @@ impl AppState {
             running: AtomicBool::new(false),
             started: Mutex::new(None),
             repair_next: AtomicBool::new(false),
+            crash_check: AtomicBool::new(false),
             paused: AtomicBool::new(false),
             log_file: logs.join("launcher.log"),
         })

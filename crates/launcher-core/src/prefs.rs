@@ -28,6 +28,8 @@ pub struct Prefs {
     pub security: Option<u8>,
     /// on a Mac, the app that starts the game, when the launcher cannot tell it from where the game is
     pub start_with: Option<String>,
+    /// after a crash on a Lordaeron realm, the game's report goes to the team (crate::crashes)
+    pub send_crashes: bool,
 }
 
 impl Default for Prefs {
@@ -48,6 +50,7 @@ impl Default for Prefs {
             auto_login: true,
             security: None,
             start_with: None,
+            send_crashes: true,
         }
     }
 }

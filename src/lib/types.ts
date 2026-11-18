@@ -17,6 +17,7 @@ export interface Prefs {
   autoLogin: boolean; // at Play, the game's login screen is filled with a one-time ticket
   security: number | null; // the signed-in account's level: the team's realms show from 1
   startWith: string | null; // on a Mac, the app that starts the game when the launcher cannot tell it
+  sendCrashes: boolean; // after a crash on a Lordaeron realm, the game's report goes to the team
 }
 
 export interface GameInfo {
