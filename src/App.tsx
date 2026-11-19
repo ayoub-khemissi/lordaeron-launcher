@@ -18,7 +18,7 @@ import { Onboarding } from "./screens/Onboarding";
 import { SettingsScreen } from "./screens/Settings";
 
 function Shell() {
-  const { status } = useLauncher();
+  const { status, busy } = useLauncher();
   // in a browser (`pnpm dev`), ?screen= opens a screen directly
   const [screen, setScreen] = useState<Screen>(
     (!inApp && (new URLSearchParams(location.search).get("screen") as Screen)) || "play",
@@ -76,6 +76,30 @@ function Shell() {
 
     return () => window.clearInterval(timer);
   }, [channel]);
+
+  // the game just closed: a look at once (a player may have kept the launcher open through hours of play)
+  const running = status?.running;
+  const wasRunning = useRef(running);
+
+  useEffect(() => {
+    if (wasRunning.current && running === false)
+      launcherUpdate(false)
+        .then(setAvailable)
+        .catch(() => {});
+    wasRunning.current = running;
+  }, [running]);
+
+  // ...and installed as at start once the game is closed and the launcher has nothing under way (Ayoub, 19/11/2026: a player kept
+  // 0.1.37 a whole day with the launcher open, his game short of the 4 GB 0.1.39 gives it); during a game, the title bar's button.
+  // Once a version: one that fails stays on the button
+  const tried = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!available || running !== false || busy || selfUpdate || tried.current === available) return;
+    tried.current = available;
+    setSelfUpdate(available);
+    launcherUpdate(true).catch(() => setSelfUpdate(null));
+  }, [available, running, busy, selfUpdate]);
 
   const language: Language = (status?.prefs.language as Language) || systemLanguage();
 
