@@ -9,6 +9,7 @@ use launcher_core::feeds::{LauncherFeed, LumenveilFeed, Manifest, RealmDef};
 use launcher_core::game::{self, GameInfo};
 use launcher_core::error::coded;
 use launcher_core::lumenveil;
+use launcher_core::memory;
 use launcher_core::plan::{self, PendingItem, PlanInput};
 use launcher_core::prefs::Prefs;
 use launcher_core::spots::{self, Spot};
@@ -476,6 +477,12 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
         // Lumenveil 0.7.1 logs in itself from the game's environment (auto_login.cpp): nothing typed, nothing on disk.
         // Without it, the launcher types the ticket.
         let in_game_login = lumenveil::installed(&root).is_some_and(|v| v >= Version([0, 7, 1, 0]));
+        // 4 GB of memory for the game instead of 2 (launcher_core::memory): many add-ons used up the 2
+        match memory::make_large_address_aware(&root.join("Wow.exe")) {
+            Ok(memory::Done::Set) => state.log("Wow.exe made large address aware (4 GB)"),
+            Ok(memory::Done::Already) => {}
+            Err(e) => state.log(&format!("Wow.exe not made large address aware: {e}")),
+        }
         // Wow.exe on Windows; on a Mac, the compatibility layer that runs it
         let home = app.path().home_dir().unwrap_or_default();
         let chosen = prefs.start_with.as_deref().map(Path::new);

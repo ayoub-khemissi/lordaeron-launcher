@@ -9,6 +9,7 @@ use std::time::{Duration, SystemTime};
 use base64::Engine;
 use launcher_core::crashes;
 use launcher_core::lumenveil;
+use launcher_core::memory;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::net;
@@ -82,6 +83,8 @@ async fn send_new(app: &AppHandle, state: &AppState) {
             "report": crashes::clean(&text),
             "dump": dump,
             "dumpSize": dump_size,
+            // whether the game may use 4 GB (the launcher sets it before each start; not, in a protected folder)
+            "largeAddressAware": memory::large_address_aware(&root.join("Wow.exe")),
         });
         match net::post_crash(&body).await {
             Ok(id) => {

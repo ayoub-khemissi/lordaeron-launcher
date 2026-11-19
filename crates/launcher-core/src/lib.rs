@@ -7,6 +7,7 @@ pub mod feeds;
 pub mod game;
 pub mod ini;
 pub mod lumenveil;
+pub mod memory;
 pub mod plan;
 pub mod prefs;
 pub mod spots;
