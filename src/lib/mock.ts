@@ -23,6 +23,7 @@ const prefs: Prefs = {
   security: null,
   startWith: null,
   sendCrashes: true,
+  cacheClearedFor: null,
 };
 const values: Record<string, string> = Object.fromEntries(
   Object.entries(schema.settings).map(([k, s]) => [

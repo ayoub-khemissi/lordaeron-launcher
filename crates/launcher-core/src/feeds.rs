@@ -90,6 +90,10 @@ pub struct RealmDef {
     /// the Play tab's pictures (https://lordaeron.eu/...): one drawn at each start of the launcher
     #[serde(default)]
     pub backgrounds: Vec<String>,
+    /// changes when the realm's items, creatures or quests change (the nightly deploy writes it): the game's Cache is emptied then
+    /// only; empty: at every start
+    #[serde(default)]
+    pub cache_stamp: String,
 }
 
 fn yes() -> bool {

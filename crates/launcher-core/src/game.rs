@@ -169,9 +169,24 @@ pub fn set_account_name(root: &Path, name: Option<&str>) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// The client's caches of items, creatures and quests: stale after a patch or a realm change.
-pub fn clear_cache(root: &Path) {
-    let _ = fs::remove_dir_all(root.join("Cache"));
+/// The client's caches of items, creatures and quests: stale after a patch or a realm change. Whether it is gone.
+pub fn clear_cache(root: &Path) -> bool {
+    let cache = root.join("Cache");
+    let _ = fs::remove_dir_all(&cache);
+    !cache.exists()
+}
+
+/// What an emptied Cache is good for: this realm as its content is now. None for a realm without a stamp (an older feed, the
+/// Lab), whose Cache is emptied at every start.
+pub fn cache_key(realm: &str, stamp: &str) -> Option<String> {
+    (!stamp.is_empty()).then(|| format!("{realm}:{stamp}"))
+}
+
+/// Whether the Cache must be emptied before the game starts. The client keeps what it asked once for good, the same files for
+/// every realm: a full Cache for another realm or older content shows wrong items and quests, but an empty one makes the client
+/// ask again for everything it shows (a profession window with a recipe add-on: hundreds of items at once, the game stalls).
+pub fn cache_stale(cleared_for: Option<&str>, key: Option<&str>) -> bool {
+    key.is_none() || cleared_for != key
 }
 
 #[cfg(test)]
@@ -215,6 +230,30 @@ mod tests {
         set_account_name(dir.path(), Some("ARTHAS")).unwrap();
         let config = fs::read_to_string(dir.path().join("WTF/Config.wtf")).unwrap();
         assert!(config.contains("SET accountName \"ARTHAS\""));
+    }
+
+    #[test]
+    fn empties_the_cache_when_it_matters() {
+        let lordaeron = cache_key("lordaeron", "a1b2");
+        assert_eq!(lordaeron.as_deref(), Some("lordaeron:a1b2"));
+        // no stamp: at every start, as before
+        assert_eq!(cache_key("lab", ""), None);
+        assert!(cache_stale(Some("lab:"), None));
+        assert!(cache_stale(None, lordaeron.as_deref()));
+        assert!(!cache_stale(Some("lordaeron:a1b2"), lordaeron.as_deref()));
+        // the realm's content changed, or another realm
+        assert!(cache_stale(Some("lordaeron:a1b2"), cache_key("lordaeron", "c3d4").as_deref()));
+        assert!(cache_stale(Some("lordaeron:a1b2"), cache_key("rimeheart", "a1b2").as_deref()));
+    }
+
+    #[test]
+    fn clears_the_cache() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("Cache/WDB/frFR")).unwrap();
+        fs::write(dir.path().join("Cache/WDB/frFR/itemcache.wdb"), b"WDB").unwrap();
+        assert!(clear_cache(dir.path()));
+        assert!(!dir.path().join("Cache").exists());
+        assert!(clear_cache(dir.path()));
     }
 
     #[test]

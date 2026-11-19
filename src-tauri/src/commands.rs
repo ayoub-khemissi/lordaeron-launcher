@@ -241,8 +241,13 @@ pub fn check_game(path: String) -> GameInfo {
 pub async fn set_prefs(app: AppHandle, state: State<'_, AppState>, prefs: serde_json::Value) -> Res<Status> {
     let mut current = state.prefs();
     let channel = current.channel.clone();
+    let game_dir = current.game_dir.clone();
     current.merge(&prefs).map_err(err)?;
     let channel_changed = current.channel != channel;
+    // another game folder: its Cache is not the one emptied
+    if current.game_dir != game_dir {
+        current.cache_cleared_for = None;
+    }
     state.save_prefs(current).map_err(err)?;
     if channel_changed {
         refresh_feeds(&state).await;
@@ -306,6 +311,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
     };
     let count = steps.len();
     let mut patches_changed = false;
+    let mut realm_changed = false;
     let mut first_install = false;
     for (index, step) in steps.iter().enumerate() {
         state.log(&format!("step {} {}", step.kind, step.name));
@@ -379,6 +385,8 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
             "realmlist" => {
                 let realm = realm_of(&feed, &prefs.realm);
                 game::set_realm(&root, info.locale.as_deref().unwrap_or("enUS"), &feed.realmlist, &realm.name)?;
+                // another realm in Config.wtf: chosen here, or in the game's own realm list since the last start
+                realm_changed = true;
             }
             "lumenveil" => {
                 let lv = lv.clone().ok_or_else(|| coded("notPublished", "Lumenveil"))?;
@@ -403,7 +411,7 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
             _ => {}
         }
     }
-    if patches_changed {
+    if patches_changed || realm_changed {
         game::clear_cache(&root);
     }
     if !manifest.is_empty() {
@@ -428,8 +436,17 @@ async fn run_updates(app: &AppHandle, state: &AppState, launch: bool) -> anyhow:
     emit(app, "done", "", 1, 1, count, count);
     if launch {
         emit(app, "launch", "", 0, 0, count, count);
-        // a fresh cache at every start (Ayoub, 06/11/2026): items, quests and creatures always as the server has them
-        game::clear_cache(&root);
+        // items, quests and creatures as the server has them (Ayoub, 06/11/2026: a fresh cache at every start), but emptied only when
+        // the realm or its content changed since (Ayoub, 19/11/2026: the client stalled refilling it, a profession window at a time)
+        let realm = realm_of(&feed, &prefs.realm);
+        let key = game::cache_key(&realm.id, &realm.cache_stamp);
+        if game::cache_stale(state.prefs().cache_cleared_for.as_deref(), key.as_deref()) && game::clear_cache(&root) {
+            let mut p = state.prefs();
+            if p.cache_cleared_for != key {
+                p.cache_cleared_for = key;
+                state.save_prefs(p)?;
+            }
+        }
         // signed in: a one-time ticket the launcher types on the login screen (crate::login); else the name alone
         let mut ticket = None;
         if cfg!(windows) && prefs.auto_login && prefs.signed_in_as.is_some() {

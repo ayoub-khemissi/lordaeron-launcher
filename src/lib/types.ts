@@ -18,6 +18,7 @@ export interface Prefs {
   security: number | null; // the signed-in account's level: the team's realms show from 1
   startWith: string | null; // on a Mac, the app that starts the game when the launcher cannot tell it
   sendCrashes: boolean; // after a crash on a Lordaeron realm, the game's report goes to the team
+  cacheClearedFor: string | null; // "<realm id>:<cacheStamp>" the game's Cache was last emptied for
 }
 
 export interface GameInfo {
@@ -39,6 +40,7 @@ export interface RealmDef {
   managePatches?: boolean;
   badge?: string | null;
   backgrounds?: string[]; // the Play tab's pictures, one drawn at each start
+  cacheStamp?: string; // changes with the realm's items, creatures and quests: the Cache is emptied then; none: at every start
 }
 
 export interface Notice {

@@ -30,6 +30,8 @@ pub struct Prefs {
     pub start_with: Option<String>,
     /// after a crash on a Lordaeron realm, the game's report goes to the team (crate::crashes)
     pub send_crashes: bool,
+    /// the realm and its cache stamp the game's Cache was last emptied for ("<realm id>:<stamp>", game::cache_key)
+    pub cache_cleared_for: Option<String>,
 }
 
 impl Default for Prefs {
@@ -51,6 +53,7 @@ impl Default for Prefs {
             security: None,
             start_with: None,
             send_crashes: true,
+            cache_cleared_for: None,
         }
     }
 }
